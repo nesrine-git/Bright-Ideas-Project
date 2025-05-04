@@ -15,6 +15,7 @@ app.use(cookieParser());
 app.use(cors({credentials: true, 
     origin: 'http://localhost:3000' // frontend URL
 }));
+app.use('/api', userRoutes); // all user routes prefixed with /api
 
 dotenv.config();
 const PORT = process.env.PORT;

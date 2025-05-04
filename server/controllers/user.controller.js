@@ -15,11 +15,13 @@ const userController = {
       // Create the new user
       const newUser = await User.create(req.body);
       // Generate JWT token
-      const userToken = jwt.sign({ id: newUser._id },process.env.SECRET_KEY);
+      const userToken = jwt.sign({ id: newUser._id },process.env.SECRET_KEY, { expiresIn: '1d' });
 
     // Send cookie
     res.cookie('usertoken', userToken, {
-        httpOnly: true
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax',
     });
 
     // Send response
@@ -53,11 +55,13 @@ const userController = {
       }
       // if we made it this far, the password was correct
       // So Create JWT
-      const userToken = jwt.sign({ id: user._id }, process.env.SECRET_KEY );
+      const userToken = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: '1d' } );
 
       // Send cookie
       res.cookie('usertoken', userToken, {
-        httpOnly: true
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax',
       });
 
       // Send response
