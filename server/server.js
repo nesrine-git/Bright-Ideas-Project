@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import dbConnect from './config/mongoose.config.js';
 import userRoutes from './routes/user.routes.js';
+import ideaRoutes from './routes/idea.routes.js';
 import normalizeError from './utils/normalizeError.js';
 
 //import response from './utils/response.js';
@@ -16,6 +17,8 @@ app.use(cors({credentials: true,
     origin: 'http://localhost:3000' // frontend URL
 }));
 app.use('/api', userRoutes); // all user routes prefixed with /api
+app.use('/api/ideas', ideaRoutes); // all idea routes prefixed with /api/ideas
+
 
 dotenv.config();
 const PORT = process.env.PORT;

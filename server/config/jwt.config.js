@@ -6,7 +6,9 @@ const authenticate = (req, res, next) => {
     if (err) { 
       return response(res, 401, false, '❌ Unauthorized: Invalid or expired token');
     } else {
-      next();
+      // ✅ Add the user ID to the request object
+      req.userId = payload.id;
+      next(); // continue to the controller
     }
   });
 };
