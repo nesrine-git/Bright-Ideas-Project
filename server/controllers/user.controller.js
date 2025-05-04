@@ -71,6 +71,17 @@ const userController = {
       next(error);
     }
   },
+  // Logout User
+    logout: (req, res) => {
+        res.clearCookie('usertoken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax',
+        });
+        return response(res, 200, true, '✅ Logged out successfully');
+    }
+  
+
 };
 
 export default userController;

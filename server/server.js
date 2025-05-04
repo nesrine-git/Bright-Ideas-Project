@@ -3,7 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import dbConnect from './config/mongoose.config.js';
-import router from './routes/user.routes.js';
+import userRoutes from './routes/user.routes.js';
 import normalizeError from './utils/normalizeError.js';
 
 //import response from './utils/response.js';
@@ -20,8 +20,6 @@ app.use('/api', userRoutes); // all user routes prefixed with /api
 dotenv.config();
 const PORT = process.env.PORT;
 dbConnect();
-
-app.use('/api', router);
 
 // 404 handler
 app.use((req, res, next) => {
