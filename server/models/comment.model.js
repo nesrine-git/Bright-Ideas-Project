@@ -4,24 +4,25 @@ const commentSchema = new Schema(
   {
     content: {
       type: String,
-      required: false
+      minlength: [3, 'Comment must be at least 3 characters long'],
+      required: false // Optional comment
     },
     idea: {
       type: Schema.Types.ObjectId,
       ref: 'Idea',
-      required: true,
+      required: true
     },
-    author: {
+    creator: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: true
     },
     likes: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
+        ref: 'User'
+      }
+    ]
   },
   { timestamps: true }
 );

@@ -6,22 +6,27 @@ import bcrypt from 'bcrypt';
 const UserSchema = new Schema({
   name: {
     type: String,
-    required: [true, "Name is required"],
-    minlength: [2, "Name must be at least 2 characters long"]
+    required: [true, "{PATH} is required"],
+    minlength: [2, "{PATH} must be at least 2 characters long"]
+  },
+  alias: {
+    type: String,
+    required: [true, "{PATH} is required"],
   },
   email: {
     type: String,
-    required: [true, "Email is required"],
+    required: [true, "{PATH} is required"],
     unique: true, // Make sure no duplicate emails are registered
     validate: {
         validator: val => /^([\w-\.]+@([\w-]+\.)+[\w-]+)?$/.test(val),
-        message: "Please enter a valid email"
+        message: "Please enter a valid {PATH}"
     }
   },
   password: {
     type: String,
-    required: [true, "Password is required"],
-    minlength: [8, "Password must be at least 8 characters long"]
+    required: [true, "{PATH} is required"],
+    minlength: [8, "{PATH} must be at least 8 characters long"],
+    select: false // 👈 This hides password by default when querying
   },
 }, { timestamps: true }); // Adds createdAt and updatedAt timestamps
 

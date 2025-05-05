@@ -40,7 +40,7 @@ const userController = {
       const { email, password } = req.body;
 
       // Find the user
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email }).select('+password');
       // email not found in users collection
       if (!user) {
         return response(res, 400, false, '❌ Invalid email or password');
@@ -79,7 +79,29 @@ const userController = {
         sameSite: 'Lax',
         });
         return response(res, 200, true, '✅ Logged out successfully');
+    },
+    // ✅ Get all users (for admin or internal use)
+    getAll: async (req, res) => {
+      try {
+        const users = await User.find().select('-password'); // Exclude password
+        response(res, 200, true, '👥 All users fetched', users);
+      } catch (err) {
+        response(res, 400, false, '❌ Failed to fetch users', err);
+      }
+    },
+    // ✅ Get one user
+    getOne: async (req, res) => {
+      try {
+        const user = await User.findById(req.params.id).select('-password'); // exclude password
+        if (!user) {
+          return response(res, 404, false, '❌ User not found');
+        }
+        response(res, 200, true, '👤 User fetched successfully', user);
+      } catch (err) {
+        response(res, 400, false, '❌ Failed to fetch user', err);
+      }
     }
+    
   
 
 };

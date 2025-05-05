@@ -3,10 +3,10 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import dbConnect from './config/mongoose.config.js';
+import normalizeError from './utils/normalizeError.js';
 import userRoutes from './routes/user.routes.js';
 import ideaRoutes from './routes/idea.routes.js';
-import normalizeError from './utils/normalizeError.js';
-
+import commentRoutes from './routes/comment.routes.js';
 //import response from './utils/response.js';
 
 const app = express();
@@ -16,10 +16,14 @@ app.use(cookieParser());
 app.use(cors({credentials: true, 
     origin: 'http://localhost:3000' // frontend URL
 }));
+
+// Routes
 app.use('/api', userRoutes); // all user routes prefixed with /api
 app.use('/api/ideas', ideaRoutes); // all idea routes prefixed with /api/ideas
+app.use('/api/comments', commentRoutes); // all comment routes prefixed with /api/comments
 
 
+// DB 
 dotenv.config();
 const PORT = process.env.PORT;
 dbConnect();
