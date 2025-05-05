@@ -40,7 +40,7 @@ const userController = {
       const { email, password } = req.body;
 
       // Find the user
-      const user = await User.findOne({ email }).select('+password');
+      const user = await User.findOne({ email }).select('+password'); // include password
       // email not found in users collection
       if (!user) {
         return response(res, 400, false, '❌ Invalid email or password');
