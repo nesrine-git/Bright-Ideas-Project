@@ -4,13 +4,13 @@ const ideaSchema = new Schema(
   {
     title: {
         type: String,
-        required: [true, 'Idea title is required'],
+        required: [true, '{PATH} title is required'],
         minlength: [5, 'Title must be at least 5 characters long'],
       },
     content: {
       type: String,
-      required: [true, 'Idea content is required'],
-      minlength: [25, 'Idea must be at least 25 characters long']
+      required: [true, '{PATH} content is required'],
+      minlength: [25, '{PATH} must be at least 25 characters long']
     },
     emotionalContext: {
         type: String,

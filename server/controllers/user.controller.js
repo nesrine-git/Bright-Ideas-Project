@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import response from '../utils/response.js';
 
 const userController = {
-  // Register a new user
+  //✅ Register a new user
   register: async (req, res, next) => {
     try {
       // Check if user already exists
@@ -33,8 +33,8 @@ const userController = {
     next(error);
     }
     },
-
-  // Login user
+    /////////////////////
+  // ✅Login user
   login: async (req, res, next) => {
     try {
       const { email, password } = req.body;
@@ -71,7 +71,8 @@ const userController = {
       next(error);
     }
   },
-  // Logout User
+  /////////////////////
+  // ✅ Logout User
     logout: (req, res) => {
         res.clearCookie('usertoken', {
         httpOnly: true,
@@ -100,10 +101,20 @@ const userController = {
       } catch (err) {
         response(res, 400, false, '❌ Failed to fetch user', err);
       }
+    },
+    //✅ Get current user
+    getCurrentUser: async (req, res) => {
+      try {
+        console.log('💡 req.userId:', req.userId);
+        const user = await User.findById(req.userId).select('-password');
+        if (!user) return response(res, 404, false, 'User not found');
+
+        return response(res, 200, true, 'Current user fetched', user);
+      } catch (err) {
+        return response(res, 400, false, '❌ Failed to fetch user', err);
+      }
     }
     
-  
-
 };
 
 export default userController;

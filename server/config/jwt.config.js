@@ -4,6 +4,7 @@ import response from '../utils/response.js';
 const authenticate = (req, res, next) => {
   jwt.verify(req.cookies.usertoken, process.env.SECRET_KEY, (err, payload) => {
     if (err) { 
+      console.log('JWT Verification failed:', err);
       return response(res, 401, false, '❌ Unauthorized: Invalid or expired token');
     } else {
       // ✅ Add the user ID to the request object

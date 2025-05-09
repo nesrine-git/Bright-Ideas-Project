@@ -7,11 +7,14 @@ const UserSchema = new Schema({
   name: {
     type: String,
     required: [true, "{PATH} is required"],
-    minlength: [2, "{PATH} must be at least 2 characters long"]
+    minlength: [2, "{PATH} must be at least 2 characters long"],
+    maxlength: [30, "{PATH} must be at most 30 characters long."]
   },
   alias: {
     type: String,
     required: [true, "{PATH} is required"],
+    minlength: [2, "{PATH} must be at least 2 characters long"],
+    maxlength: [15, "{PATH} must be at most 15 characters long."]
   },
   email: {
     type: String,
@@ -26,6 +29,7 @@ const UserSchema = new Schema({
     type: String,
     required: [true, "{PATH} is required"],
     minlength: [8, "{PATH} must be at least 8 characters long"],
+    maxlength: [128, "{PATH} must be at most 128 characters long."],
     select: false // 👈 This hides password by default when querying
   },
 }, { timestamps: true }); // Adds createdAt and updatedAt timestamps

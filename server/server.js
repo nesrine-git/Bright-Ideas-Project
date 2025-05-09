@@ -13,8 +13,8 @@ const app = express();
 app.use(express.json());
 // Middleware to parse cookies
 app.use(cookieParser());
-app.use(cors({credentials: true, 
-    origin: 'http://localhost:3000' // frontend URL
+app.use(cors({credentials: true,  // allow cookies
+    origin: 'http://localhost:5173' // frontend URL
 }));
 
 // Routes

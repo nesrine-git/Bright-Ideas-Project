@@ -8,7 +8,7 @@
         try {
         const { title, content, emotionalContext } = req.body;
         const creator = req.userId; // userId is set by the authenticate middleware
-
+        console.log(creator)
         const newIdea = await Idea.create({ title, content, emotionalContext, creator });
 
         return response(res, 201, true, '✅ Idea created successfully', newIdea);

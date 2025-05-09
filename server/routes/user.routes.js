@@ -9,6 +9,8 @@ router.post('/login', userController.login);
 router.post('/logout', userController.logout);
 // 🔐 Protected routes
 router.get('/users', authenticate, userController.getAll);
+router.get('/users/current', authenticate, userController.getCurrentUser);
 router.get('/users/:id', authenticate, userController.getOne);
+
 
 export default router;

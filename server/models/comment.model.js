@@ -4,7 +4,7 @@ const commentSchema = new Schema(
   {
     content: {
       type: String,
-      minlength: [3, 'Comment must be at least 3 characters long'],
+      minlength: [3, '{PATH} must be at least 3 characters long'],
       required: false // Optional comment
     },
     idea: {
