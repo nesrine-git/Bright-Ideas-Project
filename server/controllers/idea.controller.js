@@ -138,9 +138,23 @@
 
     // in your idea.controller.js
     getLikes: async (req, res) => {
-            const idea = await Idea.findById(req.params.id).populate('likes', 'alias name');
-            return response(res, 200, true, '👍 Likers fetched', idea.likes);
+            const idea = await Idea.findById(req.params.id)
+            .populate('likes')
+            .populate('creator');
+        
+        if (!idea) return response(res, 404, false, 'Idea not found');
+        response(res, 200, true, 'Likes fetched', idea);
+        },
+    
+    // ✅ Get all ideas created by a specific user
+    getByUser: async (req, res) => {
+        try {
+        const ideas = await Idea.find({ creator: req.params.userId }).populate('likes', 'alias name');
+        res.status(200).json({ success: true, data: ideas });
+        } catch (err) {
+        res.status(400).json({ success: false, message: 'Failed to fetch user ideas', error: err });
         }
+    }
   
     };
 

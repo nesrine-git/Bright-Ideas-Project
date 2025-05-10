@@ -87,9 +87,12 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete }) => {
         >
           {isLiked ? '👎' : '👍'}
         </button>
-        <Link to={`/ideas/${idea._id}/likes`} className="badge bg-secondary me-2">
-          {likes.length} Likes
+        <Link to={`/ideas/${idea._id}/likes`} 
+              className={`badge bg-secondary me-2 ${likes.length === 0 ? 'disabled' : ''}`} 
+              aria-disabled={likes.length === 0} >
+              {likes.length} Likes
         </Link>
+
         {idea.creator._id === userId && (
           <button
             type="button"

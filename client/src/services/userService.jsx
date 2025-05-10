@@ -44,10 +44,16 @@ const userService = {
       .catch(err => { throw userService.handleError(err) });
   },
 
+   getOne: (id) => {
+    return http.get(`/users/${id}`)
+    .then(res => res.data.data)
+    .catch(err => { throw userService.handleError(err) });
+  },
+  
   // Assuming you store the JWT in cookies
   getLoggedInUser: () => {
     return http.get('/user', { 
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `Bearer ${localStorage.getItem('usertoken')}` }
     });
   }
 };

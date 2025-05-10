@@ -30,6 +30,8 @@ router.route('/:id')
   .delete(authenticate, ideaController.delete)
   .patch(authenticate, ideaController.update);
 
+////
+router.get('/user/:userId', authenticate, ideaController.getByUser);
 // ================================
 // Route for toggling like status
 // ================================

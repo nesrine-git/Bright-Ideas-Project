@@ -29,6 +29,12 @@ const ideaService = {
     http.get(`/${id}`)
       .then(res => res.data)
       .catch(err => { throw err }),
+  
+  getByUser: (userId) =>
+    http.get(`/user/${userId}`)
+    .then(res => res.data.data)
+    .catch(err => {
+      throw err.response?.data || { message: 'Failed to fetch user ideas' }}),
 
   // Update an idea
   update: (id, updatedData) =>
