@@ -27,8 +27,8 @@ const LikeStatus = () => {
   return (
     <div className="container">
       <Navbar/>
-      <Link to="/home" className="btn btn-outline-secondary mb-3">⬅️ Back to Home</Link>
-      <h3 className="mb-4">👍 People who liked this idea</h3>
+      <Link to="/home" className="btn btn-outline-secondary m-3">⬅️ Back to Home</Link>
+      
 
       {/* Render Idea Card */}
       <div className="card p-3 mb-4 shadow-sm">
@@ -42,7 +42,7 @@ const LikeStatus = () => {
           <small className="text-secondary">🧑‍💻 by {idea.creator.alias}</small>
         )}
       </div>
-
+      <h3 className="mb-4">👍 People who liked this idea</h3>
       {/* Likes Table */}
       { idea.likes.length > 0 && (
       

@@ -44,6 +44,15 @@ app.use((err, req, res, next) => {
     res.status(normalized.statusCode).json(normalized);
   });
 
+// tells the browser to always fetch fresh data from the server.
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
+
 
 app.listen(PORT, () =>
     console.log(`Listening on port: ${PORT}`)

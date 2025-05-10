@@ -16,13 +16,15 @@ const commentService = {
   create: (ideaId, content) =>
     http
       .post(`/idea/${ideaId}`, { content })
-      .then(res => res.data.data),
+      .then(res => res.data.data)
+      .catch(err => { throw err }),
 
   // Update your own comment
   update: (commentId, content) =>
     http
       .patch(`/${commentId}`, { content })
-      .then(res => res.data.data),
+      .then(res => res.data.data)
+      .catch(err => { throw err }),
 
   // Toggle like/unlike on a comment
   toggleLike: (commentId) =>

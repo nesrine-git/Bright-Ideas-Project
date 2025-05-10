@@ -55,8 +55,8 @@ const commentController = {
       // Update the content (if provided)
       comment.content = req.body.content || comment.content;
       await comment.save();
-
-      response(res, 200, true, '✏️ Comment updated', comment);
+      const updatedComment = await Comment.findById(commentId).populate('creator');
+      response(res, 200, true, '✏️ Comment updated', updatedComment);
     } catch (err) {
       response(res, 400, false, '❌ Update failed', err);
     }

@@ -85,16 +85,18 @@ const Home = () => {
     const handleLike = async (ideaId) => {
         try {
           const updatedIdea = await ideaService.toggleLike(ideaId);
-          console.log('updatedIdea:', updatedIdea); // Check what it returns
-          setIdeas(prev =>
-            prev.map(idea =>
+          setIdeas(prev => {
+            const updatedIdeas = prev.map(idea =>
               idea._id === ideaId ? updatedIdea : idea
-            )
-          );
+            );
+            // Sort by number of likes (descending)
+            return [...updatedIdeas].sort((a, b) => b.likes.length - a.likes.length);
+          });
         } catch (err) {
           console.error('Like failed', err);
         }
       };
+      
       const handleDelete = (id) => {
         ideaService.delete(id)
           .then(() => {

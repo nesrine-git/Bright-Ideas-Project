@@ -49,6 +49,10 @@ const userService = {
     .then(res => res.data.data)
     .catch(err => { throw userService.handleError(err) });
   },
+  update: (id, data) =>
+    http.patch(`/users/${id}`, data)
+      .then(res => res.data)
+      .catch(err => { throw err }),
   
   // Assuming you store the JWT in cookies
   getLoggedInUser: () => {
