@@ -30,6 +30,27 @@
         }
     },
 
+    // ✅ Retrieve all ideas (most liked)
+    getMostLiked: async (req, res, next) => {
+        try {
+            const ideas = await Idea.aggregate([
+                {
+                    $addFields: { likesCount: { $size: "$likes" } }
+                },
+                {
+                    $sort: { likesCount: -1, createdAt: -1 }
+                }
+            ]);
+    
+            // Repopulate `creator` manually since `aggregate` doesn't auto-populate
+            const populatedIdeas = await Idea.populate(ideas, { path: 'creator' });
+    
+            return response(res, 200, true, '✅ Ideas sorted by most likes', populatedIdeas);
+        } catch (error) {
+            next(error);
+        }
+    },
+    
     // ✅ Retrieve a single idea by ID
     getOne: async (req, res, next) => {
         try {
@@ -114,6 +135,13 @@
         next(error);
         }
     },
+
+    // in your idea.controller.js
+    getLikes: async (req, res) => {
+            const idea = await Idea.findById(req.params.id).populate('likes', 'alias name');
+            return response(res, 200, true, '👍 Likers fetched', idea.likes);
+        }
+  
     };
 
     export default ideaController;

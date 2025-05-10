@@ -18,6 +18,12 @@ const ideaService = {
       .then(res => res.data)
       .catch(err => { throw err }),
 
+  // Get all ideas by most liked
+    getMostLiked: () =>
+      http.get('/most-liked')
+      .then(res => res.data)
+      .catch(err => { throw err }),
+      
   // Get a single idea
   getOne: (id) =>
     http.get(`/${id}`)
@@ -41,6 +47,13 @@ const ideaService = {
     http.patch(`/${id}/like`)
       .then(res => res.data.data)
       .catch(err => { throw err }),
+
+  // Get All Likers
+  getLikes: (ideaId) =>
+    http.get(`/${ideaId}/likes`)
+        .then(res => res.data.data)
+        .catch(err => { throw err }),  
+
 };
 
 export default ideaService;

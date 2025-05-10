@@ -37,7 +37,7 @@ const Home = () => {
     // Fetch all ideas
     const fetchIdeas = async () => {
         try {
-            const res = await ideaService.getAll();
+            const res = await ideaService.getMostLiked();
             setIdeas(res.data);
         } catch (err) {
             if (err.response?.status === 401) nav('/');

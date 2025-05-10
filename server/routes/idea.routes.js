@@ -14,6 +14,10 @@ router.route('/')
   .get(authenticate, ideaController.getAll)
   .post(authenticate, ideaController.create);
 
+// Get most-likes ideas
+router.route('/most-liked')
+    .get(authenticate, ideaController.getMostLiked);
+
 // ===========================
 // Routes for /api/ideas/:id
 // ===========================
@@ -32,5 +36,7 @@ router.route('/:id')
 
 // PATCH: Like/unlike an idea by ID (auth required)
 router.patch('/:id/like', authenticate, ideaController.toggleLike);
+// Get likers
+router.get('/:id/likes',authenticate, ideaController.getLikes)
 
 export default router;
