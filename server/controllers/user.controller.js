@@ -84,7 +84,8 @@ const userController = {
     // ✅ Get all users (for admin or internal use)
     getAll: async (req, res) => {
       try {
-        const users = await User.find().select('-password'); // Exclude password
+        {/*const users = await User.find().select('-password'); // Exclude password */}
+        const users = await User.find()
         response(res, 200, true, '👥 All users fetched', users);
       } catch (err) {
         response(res, 400, false, '❌ Failed to fetch users', err);

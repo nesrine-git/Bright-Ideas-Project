@@ -13,8 +13,8 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/" element={<AuthForm />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/b" element={<AuthForm />} />
+        <Route path="/" element={<Register />} />
         <Route path="/like" element={<LikeStatus/>} />
         <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
       </Routes>

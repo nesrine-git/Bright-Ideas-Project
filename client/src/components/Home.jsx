@@ -3,28 +3,38 @@ import { useNavigate } from 'react-router-dom';
 import ideaService from '../services/ideaService';
 import userService from '../services/userService';
 import Navbar from './Navbar';
+import IdeaForm from './IdeaForm';
+import IdeaList from './IdeaList';
 
 const Home = () => {
-    const [formData, setFormData] = useState({
-        title: '',
-        content: '',
-        emotionalContext: ''
-    });
-    const [formErrors, setFormErrors] = useState({
-        title: 'Title is required',
-        content: 'Content is required',
-        emotionalContext: ''
-    });
+    const [formData, setFormData] = useState({ title: '', content: '', emotionalContext: '' });
+    const [formErrors, setFormErrors] = useState({ title: 'Title is required', content: 'Content is required', emotionalContext: '' });
     const [errors, setErrors] = useState({});
     const [enteredForm, setEnteredForm] = useState(false);
     const [ideas, setIdeas] = useState([]);
+    const [userId, setUserId] = useState(null); // State to store the userId
 
     const nav = useNavigate();
 
     useEffect(() => {
         fetchIdeas();
+        fetchUserId(); // Fetch the user ID when the component mounts
     }, []);
 
+    // Fetch user ID
+    const fetchUserId = async () => {
+        try {
+            const user = await userService.getCurrentUser();
+            console.log('Fetched user:', user); // Log the user object
+            setUserId(user.data._id); // Set the userId to state
+            console.log('Fetched user:',user._id);
+        } catch (err) {
+            console.error("Error fetching user:", err);
+            nav('/');
+        }
+    };
+
+    // Fetch all ideas
     const fetchIdeas = async () => {
         try {
             const res = await ideaService.getAll();
@@ -34,9 +44,7 @@ const Home = () => {
         }
     };
 
-    const validateForm = () => {
-        return Object.values(formErrors).every(error => error === '');
-    };
+    const validateForm = () => Object.values(formErrors).every(error => error === '');
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -53,7 +61,7 @@ const Home = () => {
             if (!trimmed) error = 'Content is required';
             else if (trimmed.length < 25) error = 'Content must be at least 25 characters';
         }
-        // No validation on emotionalContext
+
         setFormErrors(prev => ({ ...prev, [name]: error }));
         setErrors(prev => ({ ...prev, [name]: null }));
     };
@@ -61,7 +69,6 @@ const Home = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setEnteredForm(true);
-
         if (!validateForm()) return;
 
         try {
@@ -75,80 +82,50 @@ const Home = () => {
         }
     };
 
+    const handleLike = async (ideaId) => {
+        try {
+          const updatedIdea = await ideaService.toggleLike(ideaId);
+          console.log('updatedIdea:', updatedIdea); // Check what it returns
+          setIdeas(prev =>
+            prev.map(idea =>
+              idea._id === ideaId ? updatedIdea : idea
+            )
+          );
+        } catch (err) {
+          console.error('Like failed', err);
+        }
+      };
+      const handleDelete = (id) => {
+        ideaService.delete(id)
+          .then(() => {
+            setIdeas((prev) => prev.filter((idea) => idea._id !== id));
+          })
+          .catch((err) => console.error('❌ Delete failed:', err.response?.data || err.message));
+      };
+      
+
+    if (!userId) return <div>Loading...</div>; // Return loading state if userId is not yet fetched
+
     return (
         <div className="container">
-            <Navbar/>
-            <h1 className="text-center m-4 ">💡 Welcome to the Idea Board</h1>
+            <Navbar />
+            <h1 className="text-center mb-4">💡 Welcome to the Idea Board</h1>
+            
+            <IdeaForm 
+                formData={formData}
+                formErrors={formErrors}
+                errors={errors}
+                enteredForm={enteredForm}
+                handleChange={handleChange}
+                handleSubmit={handleSubmit}
+            />
 
-            <form onSubmit={handleSubmit} className="card p-4 shadow-sm mb-5">
-                <h4 className="mb-3">Share a New Idea</h4>
-
-                {/* Title */}
-                <div className="mb-3">
-                    <input
-                        type="text"
-                        name="title"
-                        className="form-control"
-                        placeholder="Title"
-                        value={formData.title}
-                        onChange={handleChange}
-                    />
-                    {enteredForm && formErrors.title && <div className="text-danger">{formErrors.title}</div>}
-                    {errors.title && <div className="text-danger">{errors.title}</div>}
-                </div>
-
-                {/* Content */}
-                <div className="mb-3">
-                    <textarea
-                        name="content"
-                        className="form-control"
-                        placeholder="Describe your idea..."
-                        rows="4"
-                        value={formData.content}
-                        onChange={handleChange}
-                    />
-                    {enteredForm && formErrors.content && <div className="text-danger">{formErrors.content}</div>}
-                    {errors.content && <div className="text-danger">{errors.content}</div>}
-                </div>
-
-                {/* Emotion (optional) */}
-                <div className="mb-3">
-                    <input
-                        type="text"
-                        name="emotionalContext"
-                        className="form-control"
-                        placeholder="How do you feel about it? (optional)"
-                        value={formData.emotionalContext}
-                        onChange={handleChange}
-                    />
-                    {errors.emotionalContext && <div className="text-danger">{errors.emotionalContext}</div>}
-                </div>
-
-                {/* Global error */}
-                {errors.message && <div className="text-danger mb-3">{errors.message}</div>}
-
-                <button className="btn btn-success">Submit Idea</button>
-            </form>
-        
-
-            {/* Ideas List */}
-            <div className="row">
-                {ideas.length > 0 ? (ideas.map((idea) => (
-                    <div key={idea._id} className="col-md-6 mb-4">
-                        <div className="card p-3 h-100 shadow-sm">
-                            <h5 className="fw-bold">{idea.title}</h5>
-                            <p>{idea.content}</p>
-                            {idea.emotionalContext && (
-                            <small className="text-muted">😊 {idea.emotionalContext}</small>
-                            )}
-                            {idea.creator?.alias && (
-                            <small className="text-secondary">🧑‍💻 by {idea.creator.alias}</small>
-                            )}
-                        </div>
-                    </div>
-                ))): (
-                    <p>No ideas to display yet.</p>)}
-            </div>
+            <IdeaList 
+                ideas={ideas}
+                userId={userId} // Pass userId once it's fetched
+                onLikeToggle={handleLike}
+                onDelete={handleDelete}
+            />
         </div>
     );
 };

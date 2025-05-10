@@ -39,7 +39,7 @@ const ideaService = {
   // Toggle like
   toggleLike: (id) =>
     http.patch(`/${id}/like`)
-      .then(res => res.data)
+      .then(res => res.data.data)
       .catch(err => { throw err }),
 };
 

@@ -47,22 +47,24 @@
     // ✅ Like or unlike an idea
     toggleLike: async (req, res, next) => {
         try {
-        const idea = await Idea.findById(req.params.id);
-        if (!idea) return response(res, 404, false, '❌ Idea not found');
-
-        const userId = req.userId;
-        const alreadyLiked = idea.likes.includes(userId);
-
-        if (alreadyLiked) {
-            // If already liked, remove like
-            idea.likes.pull(userId);
-        } else {
-            // Otherwise, add like
-            idea.likes.push(userId);
-        }
+            const userId = req.userId; // assuming you're using a JWT auth middleware that sets req.user
+            const idea = await Idea.findById(req.params.id);
+        
+            if (!idea) return res.status(404).json({ message: 'Idea not found' });
+        
+            const alreadyLiked = idea.likes.includes(userId);
+        
+            if (alreadyLiked) {
+              idea.likes = idea.likes.filter(id => id.toString() !== userId.toString());
+            } else {
+              idea.likes.push(userId);
+            }
+        
 
         await idea.save();
-        return response(res, 200, true, '✅ Like status updated', idea);
+        const updatedIdea = await Idea.findById(idea._id).populate('creator'); // Add .lean() if you want plain object
+        return response(res, 200, true, '✅ Like status updated', updatedIdea);
+
         } catch (error) {
         next(error);
         }
