@@ -14,8 +14,8 @@ const commentController = {
         idea: ideaId,
         creator: req.userId
       });
-
-      response(res, 201, true, '💬 Comment added successfully', comment);
+      const populated = await Comment.findById(comment._id).populate('creator');
+      response(res, 201, true, '💬 Comment added successfully', populated);
     } catch (err) {
       response(res, 400, false, '❌ Failed to add comment', err);
     }
@@ -83,7 +83,8 @@ const commentController = {
       }
 
       await comment.save();
-      response(res, 200, true, hasLiked ? '👎 Unliked' : '👍 Liked', comment);
+      const updatedComment = await Comment.findById(commentId).populate('creator');
+      response(res, 200, true, hasLiked ? '👎 Unliked' : '👍 Liked', updatedComment );
     } catch (err) {
       response(res, 400, false, '❌ Failed to toggle like', err);
     }

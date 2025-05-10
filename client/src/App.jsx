@@ -15,7 +15,7 @@ function App() {
       <Routes>
         <Route path="/b" element={<AuthForm />} />
         <Route path="/" element={<Register />} />
-        <Route path="/like" element={<LikeStatus/>} />
+        <Route path="/ideas/:id/likes" element={<PrivateRoute><LikeStatus/></PrivateRoute>} />
         <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
       </Routes>
     </AuthProvider>
