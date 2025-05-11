@@ -25,11 +25,10 @@ const LikeStatus = () => {
   if (!idea) return <p>Loading...</p>;
 
   return (
+    <>
+    <Navbar/>
     <div className="container">
-      <Navbar/>
-      <Link to="/home" className="btn btn-outline-secondary m-3">⬅️ Back to Home</Link>
-      
-
+            
       {/* Render Idea Card */}
       <div className="card p-3 mb-4 shadow-sm">
         <h5 className="fw-bold">{idea.title}</h5>
@@ -68,6 +67,7 @@ const LikeStatus = () => {
       </table>
       )}
     </div>
+    </>
   );
 };
 

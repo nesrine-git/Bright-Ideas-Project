@@ -32,6 +32,12 @@ const UserSchema = new Schema({
     maxlength: [128, "{PATH} must be at most 128 characters long."],
     select: false // 👈 This hides password by default when querying
   },
+
+  // store the picture URL
+  profilePictureUrl: {
+    type: String,
+    default: '' // Or you can set a default avatar path
+  }
 }, { timestamps: true }); // Adds createdAt and updatedAt timestamps
 
 // Virtual field: confirmPassword is not saved to DB, just used for validation

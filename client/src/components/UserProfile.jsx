@@ -27,7 +27,11 @@ const UserProfile = () => {
   }, [id]);
 
   if (error) return <p className="text-danger">{error}</p>;
-  if (!user) return <p>Loading user profile...</p>;
+  if (!user) return (
+      <div className="spinner-grow" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </div>
+);
 
   const totalLikes = posts.reduce((sum, post) => sum + (Array.isArray(post.likes) ? post.likes.length : 0), 0);
 
@@ -35,7 +39,6 @@ const UserProfile = () => {
     <>
       <Navbar />
       <div className="container mt-4">
-        <Link to="/home" className="btn btn-outline-secondary mb-3">⬅️ Back to Home</Link>
         
         <h3 className="mb-3">👤 {user.alias || user.name}</h3>
         <p><strong>Name:</strong> {user.name}</p>

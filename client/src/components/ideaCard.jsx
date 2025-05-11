@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import commentService from '../services/commentService'; 
+import ideaService from '../services/ideaService'; // Ensure ideaService is imported
 import { toast } from 'react-toastify'; // optional
 
 const IdeaCard = ({ idea, userId, onLikeToggle, onDelete }) => {
@@ -10,7 +11,9 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete }) => {
   const [error, setError] = useState(null);
 
   const [editingId, setEditingId] = useState(null);
+  const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
+  const [editedEmotionalContext, setEditedEmotionalContext] = useState('');
   const [likeInFlight, setLikeInFlight] = useState(false);
 
   const likes = Array.isArray(idea.likes) ? idea.likes : [];
@@ -70,20 +73,6 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete }) => {
     }
   };
 
-  const handleUpdateComment = async (commentId) => {
-    try {
-      const updated = await commentService.update(commentId, editedContent);
-      setComments(prev =>
-        prev.map(c => (c._id === commentId ? updated : c))
-      );
-      setEditingId(null);
-      toast.success('Comment updated');
-    } catch (err) {
-      console.error('Update failed', err);
-      toast.error('Update failed');
-    }
-  };
-
   const handleToggleLike = async (id) => {
     setLikeInFlight(true);
     try {
@@ -93,19 +82,102 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete }) => {
     }
   };
 
+  // Update Idea fields (title, content, emotionalContext)
+  const handleUpdateIdea = async () => {
+    if (!editedTitle.trim() || !editedContent.trim()) {
+      toast.error('Title and content cannot be empty!');
+      return;
+    }
+    try {
+      const updatedIdea = await ideaService.update(idea._id, {
+        title: editedTitle,
+        content: editedContent,
+        emotionalContext: editedEmotionalContext
+      });
+      toast.success('Idea updated');
+      // Reflect the updated idea in the UI
+      idea.title = updatedIdea.title;
+      idea.content = updatedIdea.content;
+      idea.emotionalContext = updatedIdea.emotionalContext;
+      setEditingId(null); // Exit the editing mode
+    } catch (err) {
+      console.error('Failed to update idea', err);
+      toast.error('Update failed');
+    }
+  };
+
   return (
     <div className="card p-3 mb-3 shadow-sm">
-      <h5 className="fw-bold">{idea.title}</h5>
-      <p>{idea.content}</p>
+      {/* Editing mode */}
+      {editingId === 'idea' ? (
+        <>
+          <input
+            type="text"
+            value={editedTitle}
+            onChange={e => setEditedTitle(e.target.value)}
+            className="form-control mb-2"
+            placeholder="Edit title"
+          />
+          <textarea
+            value={editedContent}
+            onChange={e => setEditedContent(e.target.value)}
+            className="form-control mb-2"
+            placeholder="Edit content"
+          />
+          <textarea
+            value={editedEmotionalContext}
+            onChange={e => setEditedEmotionalContext(e.target.value)}
+            className="form-control mb-2"
+            placeholder="Edit emotional context"
+            maxLength={200}
+          />
+          <button
+            className="btn btn-success btn-sm me-2"
+            onClick={handleUpdateIdea}
+          >
+            💾 Save
+          </button>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setEditingId(null)}
+          >
+            ❌ Cancel
+          </button>
+        </>
+      ) : (
+        <>
+          <h5 className="fw-bold">{idea.title}</h5>
+          <p>{idea.content}</p>
 
-      {idea.emotionalContext && (
-        <small className="text-muted">😊 {idea.emotionalContext}</small>
-      )}
-      <br />
-      {(idea.creator?.alias || idea.creator?.name) && (
-        <small className="text-secondary">
-          🧑‍💻 by {idea.creator.alias || idea.creator?.name}
-        </small>
+          {idea.emotionalContext && (
+            <small className="text-muted">😊 {idea.emotionalContext}</small>
+          )}
+
+          {/* Show the user's alias with the idea's creator info */}
+          {idea.creator && (
+            <h6>
+              By{' '}
+              <Link to={`/users/${idea.creator._id}`}>
+                {idea.creator.alias || idea.creator.name}
+              </Link>
+            </h6>
+          )}
+
+          {/* Show Edit button only if user is the creator of the idea */}
+          {idea.creator._id === userId && (
+            <button
+              className="btn btn-sm btn-outline-primary ms-2"
+              onClick={() => {
+                setEditingId('idea');
+                setEditedTitle(idea.title); // Pre-fill with current values
+                setEditedContent(idea.content);
+                setEditedEmotionalContext(idea.emotionalContext || '');
+              }}
+            >
+              ✏️ Edit Idea
+            </button>
+          )}
+        </>
       )}
 
       <div className="mt-2">
@@ -126,20 +198,15 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete }) => {
           {likes.length} Likes
         </Link>
 
+        {/* Delete button remains */}
         {idea.creator._id === userId && (
           <>
-            <Link
-              to={`/ideas/${idea._id}/edit`}
-              className="btn btn-outline-info me-2"
-            >
-              ✏️ Edit
-            </Link>
             <button
               type="button"
               className="btn btn-danger"
               onClick={() => onDelete(idea._id)}
             >
-              Delete
+              🗑 Delete
             </button>
           </>
         )}
@@ -171,60 +238,38 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete }) => {
               const hasLiked = Array.isArray(c.likes) && c.likes.includes(userId);
               return (
                 <li key={c._id} className="list-group-item">
-                  {editingId === c._id ? (
-                    <>
-                      <textarea
-                        value={editedContent}
-                        onChange={e => setEditedContent(e.target.value)}
-                        className="form-control mb-2"
-                      />
-                      <button
-                        className="btn btn-success btn-sm me-2"
-                        onClick={() => handleUpdateComment(c._id)}
-                      >
-                        💾 Save
-                      </button>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => setEditingId(null)}
-                      >
-                        ❌ Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <strong>{c.creator.alias || c.creator.name}:</strong> {c.content}
-                      </div>
-                      <div className="d-flex gap-2">
-                        <button
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => handleLikeComment(c._id)}
-                        >
-                          {hasLiked ? '💔' : '❤️'} {c.likes?.length || 0}
-                        </button>
-                        {c.creator._id === userId && (
-                          <>
-                            <button
-                              className="btn btn-sm btn-outline-warning"
-                              onClick={() => {
-                                setEditingId(c._id);
-                                setEditedContent(c.content);
-                              }}
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => handleDeleteComment(c._id)}
-                            >
-                              🗑 Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{c.creator.alias || c.creator.name}:</strong> {c.content}
                     </div>
-                  )}
+                    <div className="d-flex gap-2">
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => handleLikeComment(c._id)}
+                      >
+                        {hasLiked ? '💔' : '❤️'} {c.likes?.length || 0}
+                      </button>
+                      {c.creator._id === userId && (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline-warning"
+                            onClick={() => {
+                              setEditingId(c._id);
+                              setEditedContent(c.content);
+                            }}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDeleteComment(c._id)}
+                          >
+                            🗑 Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </li>
               );
             })}

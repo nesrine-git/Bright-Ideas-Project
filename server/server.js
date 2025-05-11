@@ -9,8 +9,16 @@ import ideaRoutes from './routes/idea.routes.js';
 import commentRoutes from './routes/comment.routes.js';
 //import response from './utils/response.js';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(express.json());
+
 // Middleware to parse cookies
 app.use(cookieParser());
 app.use(cors({credentials: true,  // allow cookies

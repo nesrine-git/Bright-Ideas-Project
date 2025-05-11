@@ -114,7 +114,28 @@ const userController = {
       } catch (err) {
         return response(res, 400, false, '❌ Failed to fetch user', err);
       }
+    },
+    // ✅ Update current user
+    updateUserProfile: async (req, res, next) => {
+      try {
+        const updateData = req.body;
+
+    if (req.file) {
+      updateData.profilePictureUrl = `/uploads/${req.file.filename}`;
     }
+
+    const updatedUser = await User.findByIdAndUpdate(req.userId, updateData, {
+      new: true,
+      runValidators: true
+    });
+
+    const { password: _, ...userData } = updatedUser.toObject();
+    return response(res, 200, true, '✅ Profile updated successfully', userData);
+  } catch (err) {
+    next(err);
+      }
+    }
+
     
 };
 

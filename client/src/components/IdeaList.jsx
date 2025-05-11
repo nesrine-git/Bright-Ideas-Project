@@ -9,7 +9,7 @@ const IdeaList = ({ ideas, userId, onLikeToggle, onDelete }) => {
   return (
     <div className="row">
       {ideas.map((idea, index) => (
-        <div key={index} className="col-md-6"> {/* Ensure unique key */}
+        <div key={index} > {/* Ensure unique key */}
           <IdeaCard idea={idea} userId={userId} onLikeToggle={onLikeToggle} onDelete={onDelete}/>
         </div>
       ))}

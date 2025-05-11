@@ -9,7 +9,7 @@ import LikeStatus from './components/LikeStatus';
 import UserProfile from './components/UserProfile';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
-import EditIdea from './components/editIdea';
+import EditProfile from './components/EditProfile';
 
 
 function App() {
@@ -22,7 +22,7 @@ function App() {
           <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
           <Route path="/ideas/:id/likes" element={<PrivateRoute><LikeStatus /></PrivateRoute>} />
           <Route path="/users/:id" element={<PrivateRoute><UserProfile /></PrivateRoute>} />
-          <Route path="/ideas/:id/edit" element={<PrivateRoute><EditIdea /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
           <Route path="*" element={<h2 className="text-center mt-5">404 - Page Not Found</h2>} />
         </Routes>
       </>

@@ -109,8 +109,10 @@ const Home = () => {
     if (!userId) return <div>Loading...</div>; // Return loading state if userId is not yet fetched
 
     return (
+        <>
+        <Navbar />
         <div className="container">
-            <Navbar />
+            
             <h1 className="text-center mb-4">💡 Welcome to the Idea Board</h1>
             
             <IdeaForm 
@@ -129,6 +131,7 @@ const Home = () => {
                 onDelete={handleDelete}
             />
         </div>
+        </>
     );
 };
 
