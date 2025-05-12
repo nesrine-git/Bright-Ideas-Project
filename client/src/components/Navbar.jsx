@@ -41,7 +41,7 @@ const Navbar = () => {
             <div className="d-flex align-items-center gap-4">
               {/* Profile Section */}
               <div
-                className="d-flex align-items-center gap-2"
+                className="d-flex align-items-center gap-1"
                 style={{ cursor: 'pointer' }}
                 onClick={goToProfile}
               >
@@ -51,7 +51,7 @@ const Navbar = () => {
                   src={`http://localhost:3000/uploads/${user.image}`}
                   alt="profile"
                   className="rounded-circle"
-                  style={{ width: '30px', height: '30px', borderRadius: '50%', marginRight: '10px' }}
+                  style={{ width: '35px', height: '35px', borderRadius: '50%' }}
                 />
                 ) : (
                   <div

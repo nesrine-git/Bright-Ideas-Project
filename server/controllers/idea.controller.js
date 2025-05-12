@@ -111,8 +111,8 @@
             if (emotionalContext) idea.emotionalContext = emotionalContext;
         
             await idea.save();
-        
-            return response(res, 200, true, '✅ Idea updated successfully', idea);
+            const updatedIdea= await Idea.findById(req.params.id).populate('creator');
+            return response(res, 200, true, '✅ Idea updated successfully', updatedIdea);
             } catch (error) {
             next(error);
             }

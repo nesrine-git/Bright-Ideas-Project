@@ -34,7 +34,7 @@ const UserSchema = new Schema({
   },
 
   // store the picture URL
-  profilePictureUrl: {
+  image: {
     type: String,
     default: '' // Or you can set a default avatar path
   }

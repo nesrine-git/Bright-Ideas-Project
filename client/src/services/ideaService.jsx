@@ -38,7 +38,7 @@ const ideaService = {
 
   // Update an idea
   update: (id, updatedData) =>
-    http.patch(`/${id}`, updatedData)
+    http.put(`/${id}`, updatedData)
       .then(res => res.data)
       .catch(err => { throw err }),
 

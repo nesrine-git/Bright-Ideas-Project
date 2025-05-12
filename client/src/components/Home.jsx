@@ -104,6 +104,20 @@ const Home = () => {
           })
           .catch((err) => console.error('❌ Delete failed:', err.response?.data || err.message));
       };
+
+      
+      const handleUpdate = async (id, updatedData) => {
+        try {
+          const updated = await ideaService.update(id, updatedData);
+          setIdeas(prev => prev.map(idea => idea._id === id ? updated : idea));
+          return updated; // important if you use the result in IdeaCard
+        } catch (err) {
+          console.error(err);
+          throw err;
+        }
+      };
+      
+      
       
 
     if (!userId) return <div>Loading...</div>; // Return loading state if userId is not yet fetched
@@ -129,6 +143,7 @@ const Home = () => {
                 userId={userId} // Pass userId once it's fetched
                 onLikeToggle={handleLike}
                 onDelete={handleDelete}
+                onUpdate={handleUpdate}
             />
         </div>
         </>

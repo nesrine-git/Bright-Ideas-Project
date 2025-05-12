@@ -119,23 +119,31 @@ const userController = {
     updateUserProfile: async (req, res, next) => {
       try {
         const updateData = req.body;
-
-    if (req.file) {
-      updateData.profilePictureUrl = `/uploads/${req.file.filename}`;
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(req.userId, updateData, {
-      new: true,
-      runValidators: true
-    });
-
-    const { password: _, ...userData } = updatedUser.toObject();
-    return response(res, 200, true, '✅ Profile updated successfully', userData);
-  } catch (err) {
-    next(err);
+    
+        // Only update the image if a new one is uploaded
+        if (req.file) {
+          updateData.image = req.file.filename; // Store new image filename
+        } else {
+          // If no new image is uploaded, keep the old image
+          const currentUser = await User.findById(req.userId);
+          updateData.image = currentUser.image; // Preserve the current image
+        }
+    
+        // Update the user profile with the new data
+        const updatedUser = await User.findByIdAndUpdate(req.userId, updateData, {
+          new: true,
+          runValidators: true
+        });
+    
+        // Generate the full URL for the profile picture
+        const profilePictureUrl = updatedUser.image ? `${req.protocol}://${req.get('host')}/uploads/${updatedUser.image}` : '';
+    
+        // Send the response with the profile picture URL
+        return response(res, 200, true, '✅ Profile updated successfully', { ...updatedUser.toObject(), profilePictureUrl });
+      } catch (err) {
+        next(err);
       }
     }
-
     
 };
 

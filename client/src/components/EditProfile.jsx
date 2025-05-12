@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import userService from '../services/userService';
 import { useAuth } from '../context/AuthContext';
@@ -16,7 +16,16 @@ const EditProfile = () => {
     profilePicture: null,
   });
 
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState(null); // To show image preview
+
+  // Clean up object URLs when component unmounts or new file selected
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith('blob:')) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   useEffect(() => {
     if (user) {
@@ -26,18 +35,28 @@ const EditProfile = () => {
         email: user.email || '',
         profilePicture: null,
       });
+
+      // Set the preview image to the current user's image URL or null
       setPreview(user.profilePictureUrl || null);
     }
   }, [user]);
 
   const handleChange = e => {
     const { name, value, files } = e.target;
+
     if (name === 'profilePicture') {
       const file = files[0];
-      setFormData({ ...formData, profilePicture: file });
-      setPreview(URL.createObjectURL(file));
+
+      if (file) {
+        if (preview && preview.startsWith('blob:')) {
+          URL.revokeObjectURL(preview);
+        }
+
+        setFormData(prev => ({ ...prev, profilePicture: file }));
+        setPreview(URL.createObjectURL(file));
+      }
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -50,11 +69,11 @@ const EditProfile = () => {
     if (formData.profilePicture) {
       data.append('profilePicture', formData.profilePicture);
     }
-  
+
     try {
       const updatedUser = await userService.updateProfile(data);
       setUser(updatedUser);
-      setPreview(updatedUser.profilePictureUrl);
+      setPreview(updatedUser.profilePictureUrl || preview);
       toast.success('✅ Profile updated successfully');
       navigate('/profile');
     } catch (err) {
@@ -63,56 +82,71 @@ const EditProfile = () => {
     }
   };
   
-
+  // handle cancel
+  const handleCancel = () => {
+    if (preview && preview.startsWith('blob:')) {
+      URL.revokeObjectURL(preview); // Clean up new preview blob
+    }
+  
+    setFormData({
+      name: user.name || '',
+      alias: user.alias || '',
+      email: user.email || '',
+      profilePicture: null,
+    });
+  
+    setPreview(user.profilePictureUrl || null); // Reset preview to original
+  };
   return (
     <>
-    <Navbar />
-        
-    <form onSubmit={handleSubmit} className="container mt-4" encType="multipart/form-data">
-      <div className="d-flex align-items-center gap-2">
-        {/* Picture */}
-        {user.profilePictureUrl ? (
-                  <img
-                  src={`http://localhost:3000/uploads/${user.image}`}
-                  alt="profile"
-                  className="rounded-circle"
-                  style={{ width: '45px', height: '45px', borderRadius: '50%', marginRight: '10px' }}
-                />
-                ) : (
-                  <div
-                    className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center"
-                    style={{ width: '40px', height: '40px' }}
-                  >
-                    {user.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <h2>{user.alias}'s Profile</h2>
-      </div>
-      
+      <Navbar />
+      <form onSubmit={handleSubmit} className="container mt-4" encType="multipart/form-data">
+        <div className="d-flex align-items-center gap-3">
+          {/* Picture */}
+          {preview ? (
+            <img
+              src={preview}
+              alt="profile"
+              className="rounded-circle"
+              style={{ width: '70px', height: '70px', borderRadius: '50%' }}
+            />
+          ) : (
+            <div
+              className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center"
+              style={{ width: '40px', height: '40px' }}
+            >
+              {user.name?.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <h2>{user.alias}'s Profile</h2>
+        </div>
 
-      <div className="mb-3">
-        <label>Name</label>
-        <input type="text" name="name" value={formData.name} onChange={handleChange} className="form-control" />
-      </div>
+        <div className="m-3">
+          <label>Name</label>
+          <input type="text" name="name" value={formData.name} onChange={handleChange} className="form-control" />
+        </div>
 
-      <div className="mb-3">
-        <label>Alias</label>
-        <input type="text" name="alias" value={formData.alias} onChange={handleChange} className="form-control" />
-      </div>
+        <div className="m-3">
+          <label>Alias</label>
+          <input type="text" name="alias" value={formData.alias} onChange={handleChange} className="form-control" />
+        </div>
 
-      <div className="mb-3">
-        <label>Email</label>
-        <input type="email" name="email" value={formData.email} onChange={handleChange} className="form-control" />
-      </div>
+        <div className="m-3">
+          <label>Email</label>
+          <input type="email" name="email" value={formData.email} onChange={handleChange} className="form-control" />
+        </div>
 
-      <div className="mb-3">
-        <label>Profile Picture (optional)</label>
-        <input type="file" name="profilePicture" onChange={handleChange} accept="image/*" className="form-control" />
-        <img src={preview} alt="Preview" className="mt-2" style={{ maxHeight: 100 }} />
-      </div>
+        <div className="m-3">
+          <label>Profile Picture (optional)</label>
+          <input type="file" name="profilePicture" onChange={handleChange} accept="image/*" className="form-control" />
+          
+        </div>
+        <div className="d-flex gap-2 m-3">
+          <button type="submit" className="btn btn-success">Save</button>
+          <button type="button" className="btn btn-secondary" onClick={handleCancel}>Cancel</button>
+        </div>
 
-      <button type="submit" className="btn btn-primary">Save</button>
-    </form>
+      </form>
     </>
   );
 };

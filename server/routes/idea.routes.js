@@ -28,7 +28,7 @@ router.route('/most-liked')
 router.route('/:id')
   .get(authenticate, ideaController.getOne)
   .delete(authenticate, ideaController.delete)
-  .patch(authenticate, ideaController.update);
+  .put(authenticate, ideaController.update);
 
 ////
 router.get('/user/:userId', authenticate, ideaController.getByUser);
