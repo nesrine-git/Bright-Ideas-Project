@@ -144,16 +144,13 @@ const ideaController = {
   getReactions: async (req, res, next) => {
     try {
       const idea = await Idea.findById(req.params.id)
-        .populate('inspirations', 'alias name')
-        .populate('supports', 'alias name')
-        .populate('creator', POPULATE_CREATOR);
-
+        .populate('inspirations', 'alias name avatar')
+        .populate('supports', 'alias name avatar')
+        .populate('creator', 'alias'); // or POPULATE_CREATOR if defined
+  
       if (!idea) return response(res, 404, false, '❌ Idea not found');
-
-      return response(res, 200, true, '✅ Reactions fetched', {
-        inspirations: idea.inspirations,
-        supports: idea.supports,
-      });
+  
+      return response(res, 200, true, '✅ Reactions fetched', idea);
     } catch (error) {
       next(error);
     }

@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import userService from '../services/userService';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -11,6 +12,7 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const bellRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { theme, toggleTheme } = useTheme(); // Accessing theme and toggle function
 
   const goHome = () => navigate('/home');
   const goToProfile = () => navigate('/profile');
@@ -18,7 +20,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await userService.logout();
-      setUser(false);
+      setUser(null);
       console.log('✅ User logged out successfully');
     } catch (err) {
       console.error('❌ Logout failed:', err);
@@ -50,79 +52,70 @@ const Navbar = () => {
   };
 
   return (
-    <nav style={{ padding: '1rem', backgroundColor: '#333', color: '#fff' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ cursor: 'pointer' }} onClick={goHome}>
-          <strong>Bright Ideas+</strong>
+    <nav className={`p-4 shadow-md ${theme.cardBg} ${theme.border}`}>
+      <div className="flex justify-between items-center max-w-7xl mx-auto">
+        {/* Logo */}
+        <div
+          onClick={goHome}
+          className={`text-2xl font-bold cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
+        >
+          Bright Ideas+
         </div>
 
-        <div>
+        <div className="flex items-center gap-4">
           {user && typeof user === 'object' ? (
-            <div className="d-flex align-items-center gap-4">
+            <div className="flex items-center gap-4">
 
               {/* Notification Bell */}
-              <div style={{ position: 'relative', marginRight: '0.6rem' }} ref={bellRef}>
+              <div ref={bellRef} style={{ position: 'relative' }}>
                 <span
-                  style={{ cursor: 'pointer', fontSize: '1.3rem' }}
                   onClick={toggleDropdown}
                   title="Notifications"
+                  className={`text-xl cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
                 >
-              
+                  🔔
                 </span>
-
                 {unreadCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-5px',
-                    right: '-5px',
-                    backgroundColor: 'red',
-                    color: 'white',
-                    fontSize: '10px',
-                    borderRadius: '50%',
-                    width: '16px',
-                    height: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-5px',
+                      right: '-5px',
+                      backgroundColor: 'red',
+                      color: 'white',
+                      fontSize: '10px',
+                      borderRadius: '50%',
+                      width: '16px',
+                      height: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
                     {unreadCount}
                   </span>
                 )}
 
+                {/* Dropdown */}
                 {showDropdown && (
                   <div
                     ref={dropdownRef}
-                    style={{
-                      position: 'absolute',
-                      top: '2rem',
-                      right: 0,
-                      backgroundColor: 'white',
-                      color: 'black',
-                      padding: '1rem',
-                      width: '300px',
-                      maxHeight: '300px',
-                      overflowY: 'auto',
-                      boxShadow: '0 0 10px rgba(0,0,0,0.3)',
-                      zIndex: 100,
-                      borderRadius: '8px'
-                    }}
+                    className={`absolute top-10 right-0 bg-white p-3 rounded-xl shadow-lg ${theme.cardBg} ${theme.border}`}
+                    style={{ width: '300px', maxHeight: '300px', overflowY: 'auto' }}
                   >
                     <strong>Notifications</strong>
                     <hr />
                     {notifications.length === 0 ? (
-                      <p>No notifications</p>
+                      <p className="text-gray-500">No notifications</p>
                     ) : (
-                      notifications.map(n => (
+                      notifications.map((n) => (
                         <div
                           key={n._id}
                           title={n.idea?.content || ''}
-                          style={{
-                            fontWeight: n.read ? 'normal' : 'bold',
-                            marginBottom: '0.5rem',
-                            fontSize: '0.9rem'
-                          }}
+                          className={`font-semibold ${n.read ? 'font-normal' : 'font-bold'} mb-2 text-sm`}
                         >
-                          {n.sender?.username || 'Someone'} {n.type === 'like' ? 'liked' : 'commented on'} your idea: "<em>{n.idea?.content?.slice(0, 30)}...</em>"
+                          {n.sender?.username || 'Someone'} {n.type === 'like' ? 'liked' : 'commented on'} your idea: 
+                          <em>{n.idea?.content?.slice(0, 30)}...</em>
                         </div>
                       ))
                     )}
@@ -132,43 +125,45 @@ const Navbar = () => {
 
               {/* Profile Section */}
               <div
-                className="d-flex align-items-center gap-1"
-                style={{ cursor: 'pointer' }}
+                className="flex items-center gap-2 cursor-pointer"
                 onClick={goToProfile}
               >
                 {user.image ? (
                   <img
                     src={`http://localhost:3000/uploads/${user.image}`}
                     alt="profile"
-                    className="rounded-circle"
-                    style={{ width: '35px', height: '35px', borderRadius: '50%' }}
+                    className="rounded-full w-9 h-9"
                   />
                 ) : (
-                  <div
-                    className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center"
-                    style={{ width: '40px', height: '40px' }}
-                  >
+                  <div className="rounded-full bg-gray-400 text-white flex justify-center items-center w-9 h-9">
                     {user.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
 
-                <span className="text-primary fw-bold">
+                <span className={`text-lg font-semibold ${theme.linkText} hover:text-primary transition duration-300`}>
                   {user.alias || user.name}
                 </span>
               </div>
 
-              {/* Logout */}
+              {/* Logout Button */}
               <span
                 onClick={handleLogout}
-                className="text-white fw-bold"
-                style={{ cursor: 'pointer' }}
+                className={`text-white font-bold cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
               >
                 Logout
               </span>
             </div>
           ) : (
-            <span>Please log in</span>
+            <span className={`text-white ${theme.linkText}`}>Please log in</span>
           )}
+
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className={`ml-4 p-2 rounded-full ${theme.buttonBg} ${theme.textColor} hover:bg-primary hover:text-white transition duration-300`}
+          >
+            {theme.mode === 'dark' ? '🌙' : '☀️'} {/* Toggle icon */}
+          </button>
         </div>
       </div>
     </nav>

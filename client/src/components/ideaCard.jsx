@@ -147,7 +147,7 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
           to={`/ideas/${idea._id}/likes`}
           className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-semibold hover:bg-yellow-500"
         >
-          {inspiring.length} Reactions
+          {supports.length + inspiring.length} Reactions
         </Link>
 
         <button
