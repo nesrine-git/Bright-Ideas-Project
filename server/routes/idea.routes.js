@@ -14,9 +14,9 @@ router.route('/')
   .get(authenticate, ideaController.getAll)
   .post(authenticate, ideaController.create);
 
-// Get most-likes ideas
+// Get most-liked ideas
 router.route('/most-liked')
-    .get(authenticate, ideaController.getMostLiked);
+  .get(authenticate, ideaController.getMostLiked);
 
 // ===========================
 // Routes for /api/ideas/:id
@@ -24,21 +24,27 @@ router.route('/most-liked')
 
 // GET: Get one idea by ID (auth required)
 // DELETE: Delete idea by ID (only creator can delete)
-// PATCH: Update idea by ID (only creator can update)
+// PUT: Update idea by ID (only creator can update)
 router.route('/:id')
   .get(authenticate, ideaController.getOne)
   .delete(authenticate, ideaController.delete)
   .put(authenticate, ideaController.update);
 
-////
+// ===========================
+// Routes for user-specific data
+// ===========================
+
+// Get all ideas by a specific user (auth required)
 router.get('/user/:userId', authenticate, ideaController.getByUser);
+
 // ================================
 // Route for toggling like status
 // ================================
 
 // PATCH: Like/unlike an idea by ID (auth required)
 router.patch('/:id/like', authenticate, ideaController.toggleLike);
-// Get likers
-router.get('/:id/likes',authenticate, ideaController.getLikes)
+
+// GET: Get all likers for a specific idea
+router.get('/:id/likes', authenticate, ideaController.getLikes);
 
 export default router;

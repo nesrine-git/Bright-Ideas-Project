@@ -9,13 +9,13 @@ import LikeStatus from './components/LikeStatus';
 import UserProfile from './components/UserProfile';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext'; // ✅ import this
 import EditProfile from './components/EditProfile';
-
 
 function App() {
   return (
     <AuthProvider>
-      <>
+      <NotificationProvider> {/* ✅ Wrap the app in notification context */}
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           <Route path="/" element={<Register />} />
@@ -25,7 +25,7 @@ function App() {
           <Route path="/profile" element={<PrivateRoute><EditProfile /></PrivateRoute>} />
           <Route path="*" element={<h2 className="text-center mt-5">404 - Page Not Found</h2>} />
         </Routes>
-      </>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

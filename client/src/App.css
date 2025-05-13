@@ -10,4 +10,19 @@
     pointer-events: none;
     opacity: 0.6;
   }
+  .notification {
+    padding: 10px;
+    background-color: #f8f9fa;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .notification.font-bold {
+    font-weight: bold;
+  }
+  
+  .notification:hover {
+    background-color: #e2e6ea;
+  }
   

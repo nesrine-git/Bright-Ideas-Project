@@ -1,3 +1,4 @@
+// server.js
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -7,61 +8,61 @@ import normalizeError from './utils/normalizeError.js';
 import userRoutes from './routes/user.routes.js';
 import ideaRoutes from './routes/idea.routes.js';
 import commentRoutes from './routes/comment.routes.js';
-//import response from './utils/response.js';
+import notificationRoutes from './routes/notification.routes.js';
 
+import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { initSocket } from './utils/socket.js';
 
 const app = express();
+const server = http.createServer(app);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Load .env variables
+dotenv.config();
+
+// Middleware
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
+app.use(cookieParser());
+app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use(express.json());
-
-// Middleware to parse cookies
-app.use(cookieParser());
-app.use(cors({credentials: true,  // allow cookies
-    origin: 'http://localhost:5173' // frontend URL
-}));
+// Socket.IO
+initSocket(server);
 
 // Routes
-app.use('/api', userRoutes); // all user routes prefixed with /api
-app.use('/api/ideas', ideaRoutes); // all idea routes prefixed with /api/ideas
-app.use('/api/comments', commentRoutes); // all comment routes prefixed with /api/comments
+app.use('/api', userRoutes);
+app.use('/api/ideas', ideaRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/notifications', notificationRoutes);
 
-
-// DB 
-dotenv.config();
-const PORT = process.env.PORT;
+// MongoDB connection
 dbConnect();
 
-// 404 handler
+// 404 + Error handling
 app.use((req, res, next) => {
-    const err = new Error('Not Found');
-    err.statusCode = 404;
-    err.name = 'Not Found';
-    next(err);
-  });
-  
-
-// Global error handler
+  const err = new Error('Not Found');
+  err.statusCode = 404;
+  err.name = 'Not Found';
+  next(err);
+});
 app.use((err, req, res, next) => {
-    const normalized = normalizeError(err);
-    //response(res,normalized.statusCode,false,normalized.message,normalized.validations) 
-    res.status(normalized.statusCode).json(normalized);
-  });
+  const normalized = normalizeError(err);
+  res.status(normalized.statusCode).json(normalized);
+});
 
-// tells the browser to always fetch fresh data from the server.
 app.use((req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
   next();
 });
 
-
-app.listen(PORT, () =>
-    console.log(`Listening on port: ${PORT}`)
-);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});

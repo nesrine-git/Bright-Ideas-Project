@@ -1,161 +1,195 @@
-    import Idea from '../models/idea.model.js';
-    import response from '../utils/response.js';
+import Idea from '../models/idea.model.js';
+import Comment from '../models/comment.model.js';
+import response from '../utils/response.js';
+import notificationController from './notification.controller.js';
 
-    // All logic related to creating, retrieving, liking, and deleting ideas
-    const ideaController = {
-    // ✅ Create a new idea
-    create: async (req, res, next) => {
-        try {
-        const { title, content, emotionalContext } = req.body;
-        const creator = req.userId; // userId is set by the authenticate middleware
-        console.log(creator)
-        const newIdea = await Idea.create({ title, content, emotionalContext, creator });
+const POPULATE_CREATOR = 'alias name _id';
 
-        return response(res, 201, true, '✅ Idea created successfully', newIdea);
-        } catch (error) {
-        next(error); // forward error to error-handling middleware
-        }
-    },
+const ideaController = {
+  // ✅ Create a new idea
+  create: async (req, res, next) => {
+    try {
+      const { title, content, emotionalContext } = req.body;
+      const creator = req.userId;
+      const newIdea = await Idea.create({ title, content, emotionalContext, creator });
 
-    // ✅ Retrieve all ideas (most recent first)
-    getAll: async (req, res, next) => {
-        try {
-        const ideas = await Idea.find()
-            .populate('creator') // get all creator object
-            .sort({ createdAt: -1 });
-
-        return response(res, 200, true, '✅ All ideas retrieved', ideas);
-        } catch (error) {
-        next(error);
-        }
-    },
-
-    // ✅ Retrieve all ideas (most liked)
-    getMostLiked: async (req, res, next) => {
-        try {
-            const ideas = await Idea.aggregate([
-                {
-                    $addFields: { likesCount: { $size: "$likes" } }
-                },
-                {
-                    $sort: { likesCount: -1, createdAt: -1 }
-                }
-            ]);
-    
-            // Repopulate `creator` manually since `aggregate` doesn't auto-populate
-            const populatedIdeas = await Idea.populate(ideas, { path: 'creator' });
-    
-            return response(res, 200, true, '✅ Ideas sorted by most likes', populatedIdeas);
-        } catch (error) {
-            next(error);
-        }
-    },
-    
-    // ✅ Retrieve a single idea by ID
-    getOne: async (req, res, next) => {
-        try {
-        const idea = await Idea.findById(req.params.id)
-            .populate('creator');
-
-        if (!idea) return response(res, 404, false, '❌ Idea not found');
-
-        return response(res, 200, true, '✅ Idea retrieved', idea);
-        } catch (error) {
-        next(error);
-        }
-    },
-
-    // ✅ Like or unlike an idea
-    toggleLike: async (req, res, next) => {
-        try {
-            const userId = req.userId; // assuming you're using a JWT auth middleware that sets req.user
-            const idea = await Idea.findById(req.params.id);
-        
-            if (!idea) return res.status(404).json({ message: 'Idea not found' });
-        
-            const alreadyLiked = idea.likes.includes(userId);
-        
-            if (alreadyLiked) {
-              idea.likes = idea.likes.filter(id => id.toString() !== userId.toString());
-            } else {
-              idea.likes.push(userId);
-            }
-        
-
-        await idea.save();
-        const updatedIdea = await Idea.findById(idea._id).populate('creator'); // Add .lean() if you want plain object
-        return response(res, 200, true, '✅ Like status updated', updatedIdea);
-
-        } catch (error) {
-        next(error);
-        }
-    },
-    // ✅ Update an idea (only if user is the creator)
-        update: async (req, res, next) => {
-            try {
-            const idea = await Idea.findById(req.params.id);
-            if (!idea) {
-                return response(res, 404, false, '❌ Idea not found');
-            }
-        
-            // Check if the logged-in user is the creator of the idea
-            const creatorId = idea.creator._id?.toString() || idea.creator.toString();
-            if (creatorId !== req.userId) {
-                return response(res, 403, false, '⛔ You are not allowed to update this idea');
-            }
-        
-            // Apply allowed updates
-            const { title, content, emotionalContext } = req.body;
-            if (title) idea.title = title;
-            if (content) idea.content = content;
-            if (emotionalContext) idea.emotionalContext = emotionalContext;
-        
-            await idea.save();
-            const updatedIdea= await Idea.findById(req.params.id).populate('creator');
-            return response(res, 200, true, '✅ Idea updated successfully', updatedIdea);
-            } catch (error) {
-            next(error);
-            }
-        },
-        
-    // ✅ Delete an idea (only if user is the creator)
-    delete: async (req, res, next) => {
-        try {
-        const idea = await Idea.findById(req.params.id);
-        if (!idea) return response(res, 404, false, '❌ Idea not found');
-
-        // Only the creator can delete their idea
-        if (idea.creator.toString() !== req.userId) {
-            return response(res, 403, false, '❌ Not authorized to delete this idea');
-        }
-
-        await idea.deleteOne();
-        return response(res, 200, true, '✅ Idea deleted successfully');
-        } catch (error) {
-        next(error);
-        }
-    },
-
-    // in your idea.controller.js
-    getLikes: async (req, res) => {
-            const idea = await Idea.findById(req.params.id)
-            .populate('likes')
-            .populate('creator');
-        
-        if (!idea) return response(res, 404, false, 'Idea not found');
-        response(res, 200, true, 'Likes fetched', idea);
-        },
-    
-    // ✅ Get all ideas created by a specific user
-    getByUser: async (req, res) => {
-        try {
-        const ideas = await Idea.find({ creator: req.params.userId }).populate('likes', 'alias name');
-        res.status(200).json({ success: true, data: ideas });
-        } catch (err) {
-        res.status(400).json({ success: false, message: 'Failed to fetch user ideas', error: err });
-        }
+      // Populate creator before sending
+      const populatedIdea = await Idea.findById(newIdea._id).populate('creator', POPULATE_CREATOR);
+      return response(res, 201, true, '✅ Idea created successfully', populatedIdea);
+    } catch (error) {
+      next(error);
     }
-  
-    };
+  },
 
-    export default ideaController;
+  // ✅ Retrieve all ideas
+  getAll: async (req, res, next) => {
+    try {
+      const ideas = await Idea.find()
+        .populate('creator', POPULATE_CREATOR)
+        .sort({ createdAt: -1 });
+
+      return response(res, 200, true, '✅ All ideas retrieved', ideas);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Retrieve a single idea
+  getOne: async (req, res, next) => {
+    try {
+      const idea = await Idea.findById(req.params.id).populate('creator', POPULATE_CREATOR);
+      if (!idea) return response(res, 404, false, '❌ Idea not found');
+      return response(res, 200, true, '✅ Idea retrieved', idea);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Get most liked ideas
+  getMostLiked: async (req, res, next) => {
+    try {
+      const ideas = await Idea.find()
+        .sort({ likes: -1 })
+        .limit(10)
+        .populate('creator', POPULATE_CREATOR);
+
+      return response(res, 200, true, '✅ Most liked ideas retrieved', ideas);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // ✅ Like / Unlike idea
+  toggleLike: async (req, res, next) => {
+    try {
+      const idea = await Idea.findById(req.params.id);
+      if (!idea) return response(res, 404, false, '❌ Idea not found');
+
+      const userId = req.userId;
+      const liked = idea.likes.includes(userId);
+
+      if (liked) {
+        idea.likes.pull(userId);
+      } else {
+        idea.likes.push(userId);
+      }
+
+      await idea.save();
+
+      await notificationController.sendNotification({
+        recipientUserId: idea.creator,
+        senderId: req.userId,
+        ideaId: idea._id,
+        type: 'like',
+        content: `${req.userId} ${liked ? 'unliked' : 'liked'} your idea!`,
+      });
+
+      const updatedIdea = await Idea.findById(req.params.id).populate('creator', POPULATE_CREATOR);
+      return response(res, 200, true, '✅ Like status updated', updatedIdea);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Create comment
+  createComment: async (req, res, next) => {
+    try {
+      const { content } = req.body;
+      const idea = await Idea.findById(req.params.id);
+      if (!idea) return response(res, 404, false, '❌ Idea not found');
+
+      const newComment = await Comment.create({
+        content,
+        idea: idea._id,
+        creator: req.userId,
+      });
+
+      idea.comments.push(newComment._id);
+      await idea.save();
+
+      await notificationController.sendNotification({
+        recipientUserId: idea.creator,
+        senderId: req.userId,
+        ideaId: idea._id,
+        type: 'comment',
+        content: `${req.userId} commented on your idea!`,
+      });
+
+      return response(res, 201, true, '✅ Comment added', newComment);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Update idea
+  update: async (req, res, next) => {
+    try {
+      const idea = await Idea.findById(req.params.id).populate('creator', POPULATE_CREATOR);
+      if (!idea) return response(res, 404, false, '❌ Idea not found');
+
+      const creatorId = idea.creator._id?.toString() || idea.creator.toString();
+      if (creatorId !== req.userId) {
+        return response(res, 403, false, '⛔ You are not allowed to update this idea');
+      }
+
+      const { title, content, emotionalContext } = req.body;
+      if (title) idea.title = title;
+      if (content) idea.content = content;
+      if ('emotionalContext' in req.body) {
+        idea.emotionalContext = emotionalContext;
+      }
+
+      await idea.save();
+      const updatedIdea = await Idea.findById(req.params.id).populate('creator', POPULATE_CREATOR);
+      return response(res, 200, true, '✅ Idea updated successfully', updatedIdea);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Delete idea
+  delete: async (req, res, next) => {
+    try {
+      const idea = await Idea.findById(req.params.id);
+      if (!idea) return response(res, 404, false, '❌ Idea not found');
+
+      if (idea.creator.toString() !== req.userId) {
+        return response(res, 403, false, '❌ Not authorized to delete this idea');
+      }
+
+      await idea.deleteOne();
+      return response(res, 200, true, '✅ Idea deleted successfully');
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Get likes (with populated creator)
+  getLikes: async (req, res, next) => {
+    try {
+      const idea = await Idea.findById(req.params.id)
+        .populate('likes', 'alias name')
+        .populate('creator', POPULATE_CREATOR);
+
+      if (!idea) return response(res, 404, false, '❌ Idea not found');
+      return response(res, 200, true, '✅ Likes fetched', idea);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Get ideas by user
+  getByUser: async (req, res, next) => {
+    try {
+      const ideas = await Idea.find({ creator: req.params.userId })
+        .populate('creator', POPULATE_CREATOR)
+        .populate('likes', 'alias name');
+
+      return response(res, 200, true, '✅ Ideas fetched for user', ideas);
+    } catch (err) {
+      return response(res, 400, false, '❌ Failed to fetch user ideas', err);
+    }
+  },
+};
+
+export default ideaController;

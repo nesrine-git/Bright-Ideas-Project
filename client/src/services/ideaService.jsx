@@ -39,7 +39,7 @@ const ideaService = {
   // Update an idea
   update: (id, updatedData) =>
     http.put(`/${id}`, updatedData)
-      .then(res => res.data)
+      .then(res => res.data.data)
       .catch(err => { throw err }),
 
   // Delete an idea

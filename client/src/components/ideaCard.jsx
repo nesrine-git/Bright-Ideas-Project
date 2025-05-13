@@ -44,20 +44,17 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
       toast.success('Comment added');
     } catch (err) {
       console.error('Add comment failed', err);
-      console.log('Axios error:', error.response?.data || error.message);
       setError('Could not add comment');
       toast.error('Add comment failed');
     }
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Delete this comment?')) return;
     try {
       await commentService.delete(commentId);
       setComments(prev => prev.filter(c => c._id !== commentId));
       toast.success('Comment deleted');
     } catch (err) {
-      console.log('Axios error:', error.response?.data || error.message);
       console.error('Delete comment failed', err);
       setError('Could not delete comment');
       toast.error('Delete failed');
@@ -85,7 +82,6 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
       toast.success('Comment updated');
     } catch (err) {
       console.error('Update failed', err);
-      console.log('Axios error:', err.response?.data || err.message);
       toast.error('Update failed');
     }
   };
@@ -104,7 +100,7 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
       const updatedIdea = await onUpdate(id, editedContent);
       setEditingIdeaId(null);
       setEditedContent({});
-      toast.success('Idea updated');
+      toast.success("Idea updated!");
     } catch (err) {
       console.error('Idea update failed', err);
       toast.error('Idea update failed');
@@ -113,9 +109,8 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
 
   return (
     <div className="card p-3 mb-3 shadow-sm position-relative">
-      {/* Idea Actions */}
-      {idea.creator && idea.creator._id === userId && (
-        <Dropdown className="position-absolute top-0 end-0 m-2">
+      {idea.creator && idea.creator?._id === userId && (
+        <Dropdown className="position-absolute top-0 end-0 m-1">
           <Dropdown.Toggle variant="transparent" size="sm">⚙️</Dropdown.Toggle>
           <Dropdown.Menu>
             <Dropdown.Item onClick={() => {
@@ -165,7 +160,12 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
           <p>{idea.content}</p>
           {idea.emotionalContext && <small className="text-muted">😊 {idea.emotionalContext}</small>}<br />
           {(idea.creator?.alias || idea.creator?.name) && (
-            <small className="text-secondary">🧑‍💻 by {idea.creator.alias || idea.creator?.name}</small>
+            <strong className="text-secondary me-1">
+               By{' '}
+              <Link to={`/users/${idea.creator._id}`}>
+                {idea.creator.alias || idea.creator.name}
+              </Link>
+            </strong>
           )}
         </>
       )}
@@ -175,7 +175,7 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
         <button
           type="button"
           aria-label={isLiked ? 'Unlike this idea' : 'Like this idea'}
-          className="btn btn-warning me-2"
+          className="btn border border-0"
           onClick={() => handleToggleIdeaLike(idea._id)}
           disabled={likeInFlight}
         >
@@ -183,7 +183,7 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
         </button>
         <Link
           to={`/ideas/${idea._id}/likes`}
-          className={`badge bg-secondary me-2 ${likes.length === 0 ? 'disabled' : ''}`}
+          className={`badge text-secondary ${likes.length === 0 ? 'disabled' : ''}`}
           aria-disabled={likes.length === 0}
         >
           {likes.length} Likes
@@ -229,12 +229,14 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
                   ) : (
                     <div className="d-flex justify-content-between align-items-start">
                       <div>
-                        <strong>{c.creator.alias || c.creator.name}:</strong> {c.content}
+                        <strong>
+                          <Link to={`/users/${c.creator._id}`}>
+                            {c.creator.alias || c.creator.name}
+                          </Link>
+                          :
+                        </strong> {c.content}
                       </div>
                       <div className="d-flex gap-2 align-items-center">
-                        <button className="btn btn-sm btn-outline-primary" onClick={() => handleLikeComment(c._id)}>
-                          {hasLiked ? '💔' : '❤️'} {c.likes?.length || 0}
-                        </button>
                         {c.creator._id === userId && (
                           <Dropdown align="end">
                             <Dropdown.Toggle variant="transparent" size="sm">⚙️</Dropdown.Toggle>
@@ -251,6 +253,9 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
                             </Dropdown.Menu>
                           </Dropdown>
                         )}
+                        <button className="btn btn-sm border border-0" onClick={() => handleLikeComment(c._id)}>
+                          {hasLiked ? '👎' : '👍'} {c.likes?.length || 0}
+                        </button>
                       </div>
                     </div>
                   )}
