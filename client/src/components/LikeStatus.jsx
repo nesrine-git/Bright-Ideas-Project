@@ -9,16 +9,16 @@ const LikeStatus = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchLikes = async () => {
+    const fetchReactions = async () => {
       try {
-        const res = await ideaService.getLikes(id);
+        const res = await ideaService.getReactions(id);
         setIdea(res);
       } catch (err) {
         console.error(err);
         setError('Failed to load like status');
       }
     };
-    fetchLikes();
+    fetchReactions();
   }, [id]);
 
   if (error) return <p className="text-danger">{error}</p>;
@@ -41,9 +41,9 @@ const LikeStatus = () => {
           <small className="text-secondary">🧑‍💻 by {idea.creator.alias}</small>
         )}
       </div>
-      <h3 className="mb-4">👍 People who liked this idea</h3>
+      <h3 className="mb-4">👍 People who reacted with this idea</h3>
       {/* Likes Table */}
-      { idea.likes.length > 0 && (
+      { (idea.supports.length > 0 || idea.inspirations.length > 0) && (
       
       <table className="table table-bordered">
         <thead className="table-light">
@@ -53,7 +53,7 @@ const LikeStatus = () => {
           </tr>
         </thead>
         <tbody>
-          {idea.likes.map(user => (
+          {idea.reactions.map(user => (
             <tr key={user._id}>
               <td>
                 <Link to={`/users/${user._id}`}>

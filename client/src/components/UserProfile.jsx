@@ -17,7 +17,7 @@ const UserProfile = () => {
         setUser(userRes);
 
         const userIdeas = await ideaService.getByUser(id);
-        setPosts(userIdeas);
+        setPosts(Array.isArray(userIdeas) ? userIdeas : []);
       } catch (err) {
         console.error(err);
         setError('Failed to load user profile');
@@ -26,68 +26,84 @@ const UserProfile = () => {
     fetchUserData();
   }, [id]);
 
-  if (error) return <p className="text-danger">{error}</p>;
-  if (!user) return (
-      <div className="spinner-grow" role="status">
-        <span className="visually-hidden">Loading...</span>
-      </div>
-);
+  if (error) {
+    return <p className="text-red-600 text-center mt-4">{error}</p>;
+  }
 
-  const totalLikes = posts.reduce((sum, post) => sum + (Array.isArray(post.likes) ? post.likes.length : 0), 0);
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const totalReactions = posts.reduce((sum, post) => {
+    const supportsCount = Array.isArray(post.supports) ? post.supports.length : 0;
+    const inspirationsCount = Array.isArray(post.inspirations) ? post.inspirations.length : 0;
+    return sum + supportsCount + inspirationsCount;
+  }, 0);
 
   return (
     <>
       <Navbar />
-      <div className="container mt-4">
-        <div className='d-flex align-items-center gap-2'>
-        {user.profilePictureUrl ? (
-                  <img
-                  src={`http://localhost:3000/uploads/${user.image}`}
-                  alt="profile"
-                  className="rounded-circle"
-                  style={{ width: '35px', height: '35px', borderRadius: '50%' }}
-                />
-                ) : (
-                  <div
-                    className="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center"
-                    style={{ width: '40px', height: '40px' }}
-                  >
-                    {user.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <h3>{user.alias || user.name}</h3>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="flex items-center gap-4 mb-6">
+          {user.image ? (
+            <img
+              src={`http://localhost:3000/uploads/${user.image}`}
+              alt="profile"
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-500 text-white flex items-center justify-center text-lg font-semibold">
+              {user.name?.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <h3 className="text-xl font-semibold">{user.alias || user.name}</h3>
         </div>
-        <div className='d-flex flex-column p-4' >
-            <p><strong>Name:</strong> {user.name}</p>
-            <p><strong>Alias:</strong> {user.alias}</p>
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Total Posts:</strong> {posts.length}</p>
-            <p><strong>Total Likes Received:</strong> {totalLikes}</p>
 
-            <h5 className="mt-4">🧠 Ideas by {user.alias || user.name}</h5>
-            {posts.length === 0 ? (
-              <p className="text-muted">No ideas posted yet.</p>
-            ) : (
-              <table className="table table-bordered mt-2">
-                <thead className="thead-light">
-                  <tr>
-                    <th>Title</th>
-                    <th>Likes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {posts.map(post => (
-                    <tr key={post._id}>
-                      <td>
-                        <Link to={`/ideas/${post._id}/likes`}>{post.title}</Link>
-                      </td>
-                      <td>{post.likes?.length || 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+        <div className="bg-white shadow-md rounded-xl p-6 space-y-3">
+          <p><span className="font-semibold">Name:</span> {user.name}</p>
+          <p><span className="font-semibold">Alias:</span> {user.alias}</p>
+          <p><span className="font-semibold">Email:</span> {user.email}</p>
+          <p><span className="font-semibold">Total Posts:</span> {posts.length}</p>
+          <p><span className="font-semibold">Total Reactions Received:</span> {totalReactions}</p>
         </div>
+
+        <h4 className="text-lg font-semibold mt-8 mb-2">🧠 Ideas by {user.alias || user.name}</h4>
+
+        {posts.length === 0 ? (
+          <p className="text-gray-500 italic">No ideas posted yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto border border-gray-200 mt-2 text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="text-left px-4 py-2 border-b">Title</th>
+                  <th className="text-left px-4 py-2 border-b">Supports</th>
+                  <th className="text-left px-4 py-2 border-b">Inspirations</th>
+                </tr>
+              </thead>
+              <tbody>
+                {posts.map(post => (
+                  <tr key={post._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 border-b">
+                      <Link
+                        to={`/ideas/${post._id}/likes`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {post.title}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 border-b">{post.supports?.length || 0}</td>
+                    <td className="px-4 py-2 border-b">{post.inspirations?.length || 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </>
   );

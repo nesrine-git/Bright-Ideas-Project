@@ -1,43 +1,67 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Dropdown } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { toast } from 'react-toastify';
 import CommentSection from './CommentSection';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
+const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, onUpdate }) => {
   const [editingIdeaId, setEditingIdeaId] = useState(null);
   const [editedContent, setEditedContent] = useState({});
-  const [likeInFlight, setLikeInFlight] = useState(false);
   const [showComments, setShowComments] = useState(false);
 
-  const likes = Array.isArray(idea.likes) ? idea.likes : [];
-  const isLiked = likes.includes(userId);
+  const supports = Array.isArray(idea.supports) ? idea.supports : [];
+  const inspiring = Array.isArray(idea.inspiring) ? idea.inspiring : [];
 
-  const handleToggleIdeaLike = async (id) => {
-    setLikeInFlight(true);
+  const isSupported = supports.includes(userId);
+  const isInspiring = inspiring.includes(userId);
+
+  const handleToggleSupport = async (id) => {
     try {
-      await onLikeToggle(id);
-    } finally {
-      setLikeInFlight(false);
+      await onSupportToggle(id);
+      toast.success(isSupported ? 'Support removed!' : 'Idea supported!');
+    } catch (err) {
+      toast.error('Support toggle failed!');
+    }
+  };
+
+  const handleToggleInspiring = async (id) => {
+    try {
+      await onInspireToggle(id);
+      toast.success(isInspiring ? 'Inspiration removed!' : 'You found this inspiring!');
+    } catch (err) {
+      toast.error('Inspiration toggle failed!');
     }
   };
 
   const handleUpdateIdea = async (id) => {
     try {
-      const updatedIdea = await onUpdate(id, editedContent);
+      await onUpdate(id, editedContent);
       setEditingIdeaId(null);
       setEditedContent({});
+      toast.success('Idea updated successfully!');
     } catch (err) {
-      console.error('Idea update failed', err);
+      toast.error('Failed to update idea.');
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await onDelete(idea._id);
+      toast.info('Idea deleted.');
+    } catch (err) {
+      toast.error('Failed to delete idea.');
     }
   };
 
   return (
-    <div className="card p-3 mb-3 shadow-sm position-relative">
-      {/* Idea Owner Actions */}
+    <div className="relative bg-white rounded-2xl shadow-md p-4 mb-6 border border-gray-200">
+      {/* Owner Options */}
       {idea.creator && idea.creator?._id === userId && (
-        <Dropdown className="position-absolute top-0 end-0 m-2">
-          <Dropdown.Toggle variant="transparent" size="sm">⚙️</Dropdown.Toggle>
+        <Dropdown className="absolute top-2 right-2">
+          <Dropdown.Toggle variant="light" size="sm" className="!bg-transparent !border-0 !shadow-none">
+            ⚙️
+          </Dropdown.Toggle>
           <Dropdown.Menu>
             <Dropdown.Item onClick={() => {
               setEditingIdeaId(idea._id);
@@ -47,72 +71,97 @@ const IdeaCard = ({ idea, userId, onLikeToggle, onDelete, onUpdate }) => {
                 emotionalContext: idea.emotionalContext || ''
               });
             }}>✏️ Edit</Dropdown.Item>
-            <Dropdown.Item onClick={() => onDelete(idea._id)} className="text-danger">🗑 Delete</Dropdown.Item>
+            <Dropdown.Item onClick={handleDelete} className="text-danger">🗑 Delete</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       )}
 
-      {/* Content */}
+      {/* Idea Content */}
       {editingIdeaId === idea._id ? (
-        <div>
+        <div className="space-y-2">
           <input
-            className="form-control mb-2"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
             value={editedContent.title || ''}
             onChange={e => setEditedContent({ ...editedContent, title: e.target.value })}
+            placeholder="Title"
           />
           <textarea
-            className="form-control mb-2"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
             value={editedContent.content || ''}
             onChange={e => setEditedContent({ ...editedContent, content: e.target.value })}
+            placeholder="Content"
           />
           <input
-            className="form-control mb-2"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
             value={editedContent.emotionalContext || ''}
             onChange={e => setEditedContent({ ...editedContent, emotionalContext: e.target.value })}
+            placeholder="Emotional Context"
           />
-          <button className="btn btn-success btn-sm me-2" onClick={() => handleUpdateIdea(idea._id)}>💾 Save</button>
-          <button className="btn btn-secondary btn-sm" onClick={() => { setEditingIdeaId(null); setEditedContent({}); }}>❌ Cancel</button>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600" onClick={() => handleUpdateIdea(idea._id)}>
+              💾 Save
+            </button>
+            <button className="px-3 py-1 bg-gray-300 text-sm rounded hover:bg-gray-400" onClick={() => {
+              setEditingIdeaId(null);
+              setEditedContent({});
+            }}>
+              ❌ Cancel
+            </button>
+          </div>
         </div>
       ) : (
         <>
-          <h5 className="fw-bold">{idea.title}</h5>
-          <p>{idea.content}</p>
-          {idea.emotionalContext && <small className="text-muted">😊 {idea.emotionalContext}</small>}<br />
+          <h3 className="text-lg font-semibold text-gray-800">{idea.title}</h3>
+          <p className="text-gray-700">{idea.content}</p>
+          {idea.emotionalContext && (
+            <p className="text-sm text-gray-500">😊 {idea.emotionalContext}</p>
+          )}
           {(idea.creator?.alias || idea.creator?.name) && (
-            <small className="text-secondary">
-              🧑‍💻 by <Link to={`/users/${idea.creator._id}`} className="text-decoration-underline">
+            <p className="text-xs text-gray-400">
+              🧑‍💻 by{' '}
+              <Link to={`/users/${idea.creator._id}`} className="underline text-blue-600">
                 {idea.creator.alias || idea.creator.name}
               </Link>
-            </small>
+            </p>
           )}
         </>
       )}
 
-      {/* Actions */}
-      <div className="mt-2 d-flex align-items-center gap-2">
+      {/* Buttons */}
+      <div className="mt-4 flex items-center flex-wrap gap-3 text-sm">
         <button
-          aria-label={isLiked ? 'Unlike' : 'Like'}
-          className="btn border-0"
-          onClick={() => handleToggleIdeaLike(idea._id)}
-          disabled={likeInFlight}
+          className={`px-3 py-1 rounded-md border ${isSupported ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'} hover:shadow`}
+          onClick={() => handleToggleSupport(idea._id)}
         >
-          {isLiked ? '👎' : '👍'}
+          {isSupported ? '❌ Support' : '✅ Support'}
         </button>
-        <Link to={`/ideas/${idea._id}/likes`} className="badge bg-secondary">
-          {likes.length} Likes
-        </Link>
+
         <button
-          className="btn border-0"
-          onClick={() => setShowComments(prev => !prev)}
-          aria-label="Toggle comments"
+          className={`px-3 py-1 rounded-md border ${isInspiring ? 'bg-yellow-100 text-yellow-600' : 'bg-purple-100 text-purple-600'} hover:shadow`}
+          onClick={() => handleToggleInspiring(idea._id)}
         >
-          💬
+          {isInspiring ? '❌ Inspire' : '✨ Inspire'}
+        </button>
+
+        <Link
+          to={`/ideas/${idea._id}/likes`}
+          className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-semibold hover:bg-yellow-500"
+        >
+          {inspiring.length} Reactions
+        </Link>
+
+        <button
+          className="ml-auto px-2 py-1 text-blue-500 hover:text-blue-700"
+          onClick={() => setShowComments(prev => !prev)}
+        >
+          💬 {showComments ? 'Hide Comments' : 'Show Comments'}
         </button>
       </div>
 
+      {/* Comments */}
       {showComments && (
         <>
-          <hr />
+          <hr className="my-4 border-gray-300" />
           <CommentSection ideaId={idea._id} userId={userId} />
         </>
       )}

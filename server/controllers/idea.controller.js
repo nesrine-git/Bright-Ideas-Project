@@ -13,7 +13,6 @@ const ideaController = {
       const creator = req.userId;
       const newIdea = await Idea.create({ title, content, emotionalContext, creator });
 
-      // Populate creator before sending
       const populatedIdea = await Idea.findById(newIdea._id).populate('creator', POPULATE_CREATOR);
       return response(res, 201, true, '✅ Idea created successfully', populatedIdea);
     } catch (error) {
@@ -45,47 +44,116 @@ const ideaController = {
     }
   },
 
-  // ✅ Get most liked ideas
-  getMostLiked: async (req, res, next) => {
+  // ✅ Get most supported ideas
+  getMostSupported: async (req, res, next) => {
     try {
-      const ideas = await Idea.find()
-        .sort({ likes: -1 })
-        .limit(10)
-        .populate('creator', POPULATE_CREATOR);
+      const ideas = await Idea.find().populate('creator', POPULATE_CREATOR).lean();
 
-      return response(res, 200, true, '✅ Most liked ideas retrieved', ideas);
+      const sorted = ideas
+        .map(idea => ({ ...idea, supportCount: idea.supports.length }))
+        .sort((a, b) => b.supportCount - a.supportCount)
+        .slice(0, 10);
+
+      return response(res, 200, true, '✅ Most supported ideas retrieved', sorted);
     } catch (err) {
       next(err);
     }
   },
 
-  // ✅ Like / Unlike idea
-  toggleLike: async (req, res, next) => {
+  // ✅ Get most inspiring ideas
+  getMostInspiring: async (req, res, next) => {
+    try {
+      const ideas = await Idea.find().populate('creator', POPULATE_CREATOR).lean();
+
+      const sorted = ideas
+        .map(idea => ({ ...idea, inspirationCount: idea.inspirations.length }))
+        .sort((a, b) => b.inspirationCount - a.inspirationCount)
+        .slice(0, 10);
+
+      return response(res, 200, true, '✅ Most inspiring ideas retrieved', sorted);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // ✅ Toggle inspiration
+  toggleInspiration: async (req, res, next) => {
     try {
       const idea = await Idea.findById(req.params.id);
       if (!idea) return response(res, 404, false, '❌ Idea not found');
 
       const userId = req.userId;
-      const liked = idea.likes.includes(userId);
+      const inspired = idea.inspirations.includes(userId);
 
-      if (liked) {
-        idea.likes.pull(userId);
+      if (inspired) {
+        idea.inspirations.pull(userId);
       } else {
-        idea.likes.push(userId);
+        idea.inspirations.push(userId);
       }
 
       await idea.save();
 
       await notificationController.sendNotification({
         recipientUserId: idea.creator,
-        senderId: req.userId,
+        senderId: userId,
         ideaId: idea._id,
-        type: 'like',
-        content: `${req.userId} ${liked ? 'unliked' : 'liked'} your idea!`,
+        type: 'inspiration',
+        content: `${userId} ${inspired ? 'removed inspiration' : 'was inspired by your idea!'}`,
       });
 
-      const updatedIdea = await Idea.findById(req.params.id).populate('creator', POPULATE_CREATOR);
-      return response(res, 200, true, '✅ Like status updated', updatedIdea);
+      const updatedIdea = await Idea.findById(idea._id).populate('creator', POPULATE_CREATOR);
+      return response(res, 200, true, '✅ Inspiration toggled', updatedIdea);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Toggle support
+  toggleSupport: async (req, res, next) => {
+    try {
+      const idea = await Idea.findById(req.params.id);
+      if (!idea) return response(res, 404, false, '❌ Idea not found');
+
+      const userId = req.userId;
+      const supported = idea.supports.includes(userId);
+
+      if (supported) {
+        idea.supports.pull(userId);
+      } else {
+        idea.supports.push(userId);
+      }
+
+      await idea.save();
+
+      await notificationController.sendNotification({
+        recipientUserId: idea.creator,
+        senderId: userId,
+        ideaId: idea._id,
+        type: 'support',
+        content: `${userId} ${supported ? 'withdrew support from' : 'supported'} your idea!`,
+      });
+
+      const updatedIdea = await Idea.findById(idea._id).populate('creator', POPULATE_CREATOR);
+      return response(res, 200, true, '✅ Support toggled', updatedIdea);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // ✅ Get reactions (inspirations & supports)
+  getReactions: async (req, res, next) => {
+    try {
+      const idea = await Idea.findById(req.params.id)
+        .populate('inspirations', 'alias name')
+        .populate('supports', 'alias name')
+        .populate('creator', POPULATE_CREATOR);
+
+      if (!idea) return response(res, 404, false, '❌ Idea not found');
+
+      return response(res, 200, true, '✅ Reactions fetched', {
+        inspirations: idea.inspirations,
+        supports: idea.supports,
+      });
     } catch (error) {
       next(error);
     }
@@ -164,26 +232,13 @@ const ideaController = {
     }
   },
 
-  // ✅ Get likes (with populated creator)
-  getLikes: async (req, res, next) => {
-    try {
-      const idea = await Idea.findById(req.params.id)
-        .populate('likes', 'alias name')
-        .populate('creator', POPULATE_CREATOR);
-
-      if (!idea) return response(res, 404, false, '❌ Idea not found');
-      return response(res, 200, true, '✅ Likes fetched', idea);
-    } catch (error) {
-      next(error);
-    }
-  },
-
   // ✅ Get ideas by user
   getByUser: async (req, res, next) => {
     try {
       const ideas = await Idea.find({ creator: req.params.userId })
         .populate('creator', POPULATE_CREATOR)
-        .populate('likes', 'alias name');
+        .populate('inspirations', 'alias name')
+        .populate('supports', 'alias name');
 
       return response(res, 200, true, '✅ Ideas fetched for user', ideas);
     } catch (err) {

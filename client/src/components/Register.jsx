@@ -21,7 +21,6 @@ const Register = () => {
   });
   const [enteredForm, setEnteredForm] = useState(false);
   const [user, setUser] = useState(null);
-
   const nav = useNavigate();
 
   const validateForm = () => Object.values(formErrors).every(v => v === '');
@@ -72,131 +71,129 @@ const Register = () => {
     e.preventDefault();
     setEnteredForm(true);
 
-    // Debugging: Log the form data before sending to API
-    console.log("Submitting form data:", formData);
-
     const authAction = isLogin
       ? userService.login(formData)
       : userService.register(formData);
 
-    authAction      
+    authAction
       .then((res) => {
-        console.log("User data:", res.data);
         setUser(res.data);
         nav('/home');
       })
       .catch((err) => {
-        console.error('Auth error:', err);
-
-        // Debugging: Log the error response
-        console.log("Error response:", err?.response?.data);
-
         setErrors(err?.response?.data || { message: 'Unknown error' });
       });
   };
 
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-6">
-          <div className="card">
-            <div className="card-body">
-              <h2 className="card-title text-center">{isLogin ? 'Login' : 'Register'}</h2>
-              <form onSubmit={handleSubmit}>
-                {!isLogin && (
-                  <>
-                    <div className="mb-3">
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        className="form-control"
-                        placeholder="Name"
-                        onChange={handleChange}
-                        onClick={() => setEnteredForm(true)}
-                      />
-                      {formErrors.name && enteredForm && <div className="text-danger small">{formErrors.name}</div>}
-                      {errors.validations?.name && <div className="text-danger small">{errors.validations.name}</div>}
-                    </div>
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{
+        backgroundImage: 'url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1AWJnlcIHpCv8NFjgBJxacwwSv5fPW5peAw&s")', 
+      }}
+    >
+      <div className="bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h1 className="text-4xl font-bold text-indigo-700 text-center mb-1">Bright Ideas+</h1>
+        <p className="text-center text-gray-600 italic mb-6">"Where creativity meets action."</p>
 
-                    <div className="mb-3">
-                      <input
-                        type="text"
-                        name="alias"
-                        value={formData.alias}
-                        className="form-control"
-                        placeholder="Alias"
-                        onChange={handleChange}
-                        onClick={() => setEnteredForm(true)}
-                      />
-                      {formErrors.alias && enteredForm && <div className="text-danger small">{formErrors.alias}</div>}
-                      {errors.validations?.alias && <div className="text-danger small">{errors.validations.alias}</div>}
-                    </div>
-                  </>
-                )}
+        <h2 className="text-2xl font-semibold text-center mb-6">{isLogin ? 'Login' : 'Register'}</h2>
 
-                <div className="mb-3">
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    className="form-control"
-                    placeholder="Email"
-                    onChange={handleChange}
-                    onClick={() => setEnteredForm(true)}
-                  />
-                  {formErrors.email && enteredForm && <div className="text-danger small">{formErrors.email}</div>}
-                  {errors.validations?.email && <div className="text-danger small">{errors.validations.email}</div>}
-                </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <>
+              <div>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  onClick={() => setEnteredForm(true)}
+                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
+                />
+                {formErrors.name && enteredForm && <p className="text-red-500 text-sm">{formErrors.name}</p>}
+                {errors.validations?.name && <p className="text-red-500 text-sm">{errors.validations.name}</p>}
+              </div>
 
-                <div className="mb-3">
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    className="form-control"
-                    placeholder="Password"
-                    onChange={handleChange}
-                    onClick={() => setEnteredForm(true)}
-                  />
-                  {formErrors.password && enteredForm && <div className="text-danger small">{formErrors.password}</div>}
-                  {errors.validations?.password && <div className="text-danger small">{errors.validations.password}</div>}
-                </div>
+              <div>
+                <input
+                  type="text"
+                  name="alias"
+                  placeholder="Alias"
+                  value={formData.alias}
+                  onChange={handleChange}
+                  onClick={() => setEnteredForm(true)}
+                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
+                />
+                {formErrors.alias && enteredForm && <p className="text-red-500 text-sm">{formErrors.alias}</p>}
+                {errors.validations?.alias && <p className="text-red-500 text-sm">{errors.validations.alias}</p>}
+              </div>
+            </>
+          )}
 
-                {!isLogin && (
-                  <div className="mb-3">
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      className="form-control"
-                      placeholder="Confirm Password"
-                      onChange={handleChange}
-                      onClick={() => setEnteredForm(true)}
-                    />
-                    {formErrors.confirmPassword && enteredForm && <div className="text-danger small">{formErrors.confirmPassword}</div>}
-                    {errors.validations?.confirmPassword && <div className="text-danger small">{errors.validations.confirmPassword}</div>}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="btn btn-primary w-100"
-                  disabled={!isLogin && !validateForm()}
-                >
-                  {isLogin ? 'Login' : 'Register'}
-                </button>
-              </form>
-
-              <p className="mt-3 text-center">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
-                <button className="btn btn-link p-0" onClick={() => setIsLogin(!isLogin)}>
-                  {isLogin ? 'Register' : 'Login'}
-                </button>
-              </p>
-            </div>
+          <div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              onClick={() => setEnteredForm(true)}
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
+            />
+            {formErrors.email && enteredForm && <p className="text-red-500 text-sm">{formErrors.email}</p>}
+            {errors.validations?.email && <p className="text-red-500 text-sm">{errors.validations.email}</p>}
           </div>
-        </div>
+
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              onClick={() => setEnteredForm(true)}
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
+            />
+            {formErrors.password && enteredForm && <p className="text-red-500 text-sm">{formErrors.password}</p>}
+            {errors.validations?.password && <p className="text-red-500 text-sm">{errors.validations.password}</p>}
+          </div>
+
+          {!isLogin && (
+            <div>
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                onClick={() => setEnteredForm(true)}
+                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
+              />
+              {formErrors.confirmPassword && enteredForm && (
+                <p className="text-red-500 text-sm">{formErrors.confirmPassword}</p>
+              )}
+              {errors.validations?.confirmPassword && (
+                <p className="text-red-500 text-sm">{errors.validations.confirmPassword}</p>
+              )}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={!isLogin && !validateForm()}
+            className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
+          >
+            {isLogin ? 'Login' : 'Register'}
+          </button>
+        </form>
+
+        <p className="mt-4 text-center text-sm">
+          {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
+          <button className="text-indigo-600 hover:underline" onClick={() => setIsLogin(!isLogin)}>
+            {isLogin ? 'Register' : 'Login'}
+          </button>
+        </p>
       </div>
     </div>
   );

@@ -12,35 +12,32 @@ const Home = () => {
     const [errors, setErrors] = useState({});
     const [enteredForm, setEnteredForm] = useState(false);
     const [ideas, setIdeas] = useState([]);
-    const [userId, setUserId] = useState(null); // State to store the userId
+    const [userId, setUserId] = useState(null);
 
     const nav = useNavigate();
 
     useEffect(() => {
+        fetchUserId();
         fetchIdeas();
-        fetchUserId(); // Fetch the user ID when the component mounts
     }, []);
 
-    // Fetch user ID
     const fetchUserId = async () => {
         try {
             const user = await userService.getCurrentUser();
-            console.log('Fetched user:', user); // Log the user object
-            setUserId(user.data._id); // Set the userId to state
-            console.log('Fetched user:',user._id);
+            setUserId(user.data._id);
         } catch (err) {
             console.error("Error fetching user:", err);
             nav('/');
         }
     };
 
-    // Fetch all ideas
     const fetchIdeas = async () => {
         try {
-            const res = await ideaService.getMostLiked();
+            const res = await ideaService.getAll();
             setIdeas(res.data);
         } catch (err) {
             if (err.response?.status === 401) nav('/');
+            else console.error("Failed to fetch ideas:", err);
         }
     };
 
@@ -82,70 +79,78 @@ const Home = () => {
         }
     };
 
-    const handleLike = async (ideaId) => {
-        try {
-          const updatedIdea = await ideaService.toggleLike(ideaId);
-          setIdeas(prev => {
-            const updatedIdeas = prev.map(idea =>
-              idea._id === ideaId ? updatedIdea : idea
-            );
-            // Sort by number of likes (descending)
-            return [...updatedIdeas].sort((a, b) => b.likes.length - a.likes.length);
-          });
-        } catch (err) {
-          console.error('Like failed', err);
-        }
-      };
-      
-      const handleDelete = (id) => {
+    const handleDelete = (id) => {
         ideaService.delete(id)
-          .then(() => {
-            setIdeas((prev) => prev.filter((idea) => idea._id !== id));
-          })
-          .catch((err) => console.error('❌ Delete failed:', err.response?.data || err.message));
-      };
+            .then(() => {
+                setIdeas(prev => prev.filter(idea => idea._id !== id));
+            })
+            .catch(err => console.error('❌ Delete failed:', err.response?.data || err.message));
+    };
 
-      
-      const handleUpdate = async (id, updatedData) => {
+    const handleUpdate = async (id, updatedData) => {
         try {
-          const updated = await ideaService.update(id, updatedData);
-          setIdeas(prev => prev.map(idea => idea._id === id ? updated : idea));
-          return updated; // important if you use the result in IdeaCard
+            const updated = await ideaService.update(id, updatedData);
+            setIdeas(prev => prev.map(idea => idea._id === id ? updated : idea));
+            return updated;
         } catch (err) {
-          console.error(err);
-          throw err;
+            console.error('❌ Update failed:', err);
+            throw err;
         }
-      };
-      
-      
-      
+    };
 
-    if (!userId) return <div>Loading...</div>; // Return loading state if userId is not yet fetched
+    const toggleReaction = async (id, type) => {
+        const serviceFn = type === 'support' ? ideaService.toggleSupport : ideaService.toggleInspiration;
+        const field = type === 'support' ? 'supports' : 'inspiring';
+
+        try {
+            await serviceFn(id);
+            setIdeas(prevIdeas =>
+                prevIdeas.map(idea => {
+                    if (idea._id !== id) return idea;
+
+                    const currentList = Array.isArray(idea[field]) ? idea[field] : [];
+                    const alreadyReacted = currentList.includes(userId);
+                    const updatedList = alreadyReacted
+                        ? currentList.filter(uid => uid !== userId)
+                        : [...currentList, userId];
+
+                    return { ...idea, [field]: updatedList };
+                })
+            );
+        } catch (err) {
+            console.error(`Error toggling ${type}:`, err);
+        }
+    };
+
+    const handleSupportToggle = (id) => toggleReaction(id, 'support');
+    const handleInspireToggle = (id) => toggleReaction(id, 'inspire');
+
+    if (!userId) return <div className="text-center mt-5">Loading...</div>;
 
     return (
         <>
-        <Navbar />
-        <div className="container">
-            
-            <h1 className="text-center mb-4">💡 Welcome to the Idea Board</h1>
-            
-            <IdeaForm 
-                formData={formData}
-                formErrors={formErrors}
-                errors={errors}
-                enteredForm={enteredForm}
-                handleChange={handleChange}
-                handleSubmit={handleSubmit}
-            />
+            <Navbar />
+            <div className="container mt-4">
+                <h1 className="text-center mb-4">💡 Welcome to the Idea Board</h1>
 
-            <IdeaList 
-                ideas={ideas}
-                userId={userId} // Pass userId once it's fetched
-                onLikeToggle={handleLike}
-                onDelete={handleDelete}
-                onUpdate={handleUpdate}
-            />
-        </div>
+                <IdeaForm
+                    formData={formData}
+                    formErrors={formErrors}
+                    errors={errors}
+                    enteredForm={enteredForm}
+                    handleChange={handleChange}
+                    handleSubmit={handleSubmit}
+                />
+
+                <IdeaList
+                    ideas={ideas}
+                    userId={userId}
+                    onSupportToggle={handleSupportToggle}
+                    onInspireToggle={handleInspireToggle}
+                    onDelete={handleDelete}
+                    onUpdate={handleUpdate}
+                />
+            </div>
         </>
     );
 };

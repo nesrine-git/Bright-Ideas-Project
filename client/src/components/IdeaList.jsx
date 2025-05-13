@@ -1,7 +1,7 @@
 import React from 'react';
 import IdeaCard from './IdeaCard';
 
-const IdeaList = ({ ideas, userId, onLikeToggle, onDelete, onUpdate }) => {
+const IdeaList = ({ ideas, userId, onInspireToggle, onSupportToggle, onDelete, onUpdate }) => {
   if (!Array.isArray(ideas) || ideas.length === 0) {
     return <p>No ideas to display yet.</p>;
   }
@@ -10,7 +10,8 @@ const IdeaList = ({ ideas, userId, onLikeToggle, onDelete, onUpdate }) => {
     <div className="row">
       {ideas.map((idea, index) => (
         <div key={index} > {/* Ensure unique key */}
-          <IdeaCard idea={idea} userId={userId} onLikeToggle={onLikeToggle} onDelete={onDelete} onUpdate={onUpdate}/>
+          <IdeaCard idea={idea} userId={userId} onSupportToggle={onSupportToggle}
+          onInspireToggle={onInspireToggle} onDelete={onDelete} onUpdate={onUpdate}/>
         </div>
       ))}
     </div>

@@ -1,16 +1,16 @@
 import { Server } from 'socket.io';
 
 let io;
-const users = {}; // userId -> socketId
+const users = {}; // userId -> socketId map
 
 // Initialize Socket.IO and define handlers
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: 'http://localhost:5173',
+      origin: 'http://localhost:5173', // Frontend URL
       credentials: true,
       methods: ['GET', 'POST'],
-    }
+    },
   });
 
   io.on('connection', (socket) => {
@@ -39,6 +39,6 @@ export const initSocket = (server) => {
 export const sendNotificationToUser = (userId, notification) => {
   const socketId = users[userId];
   if (socketId && io) {
-    io.to(socketId).emit('new-notification', notification);
+    io.to(socketId).emit('new-notification', notification); // Send 'new-notification' event
   }
 };

@@ -20,21 +20,34 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
+    console.log('🔌 Connecting to socket server...');
+
     const newSocket = io('http://localhost:3000', {
       withCredentials: true,
     });
     setSocket(newSocket);
 
+    // Log when the socket connects successfully
     newSocket.on('connect', () => {
+      console.log(`✅ Socket connected: ${newSocket.id}`);
       newSocket.emit('register', user._id);
     });
 
-    newSocket.on('newNotification', (notification) => {
+    // Log when the socket receives a notification
+    newSocket.on('new-notification', (notification) => {
+      console.log('📬 New notification received:', notification);
       setNotifications(prev => [notification, ...prev]);
       setUnreadCount(prev => prev + 1);
     });
 
+    // Log any errors
+    newSocket.on('connect_error', (err) => {
+      console.log('❌ Socket connection error:', err.message);
+    });
+
+    // Cleanup on component unmount
     return () => {
+      console.log('🔌 Socket disconnected');
       newSocket.disconnect();
     };
   }, [user]);

@@ -1,50 +1,27 @@
-import express, { Router } from 'express';
+import express from 'express';
 import ideaController from '../controllers/idea.controller.js';
-import authenticate from '../config/jwt.config.js'; // Auth middleware
+import authenticate from '../config/jwt.config.js';
 
-const router = Router();
+const router = express.Router();
 
-// =======================
-// Routes for /api/ideas/
-// =======================
+// 🚀 Create and List Ideas
+router.post('/create', authenticate, ideaController.create); // Create a new idea
+router.get('/user/:userId', ideaController.getByUser); // ✅ Specific route - get ideas by a user
+router.get('/most-supported', ideaController.getMostSupported); // Get most supported ideas
+router.get('/most-inspiring', ideaController.getMostInspiring); // Get most inspiring ideas
+router.get('/:id/reactions', ideaController.getReactions); // Get reactions for a single idea
+router.get('/', ideaController.getAll); // Get all ideas
+router.get('/:id', ideaController.getOne); // ✅ General route - must come after others
 
-// GET: Retrieve all ideas (only for authenticated users)
-// POST: Create a new idea (authenticated user is the creator)
-router.route('/')
-  .get(authenticate, ideaController.getAll)
-  .post(authenticate, ideaController.create);
+// 🚀 Idea Reactions
+router.post('/:id/toggle-inspiration', authenticate, ideaController.toggleInspiration); // Toggle inspiration
+router.post('/:id/toggle-support', authenticate, ideaController.toggleSupport); // Toggle support
 
-// Get most-liked ideas
-router.route('/most-liked')
-  .get(authenticate, ideaController.getMostLiked);
+// 🚀 Idea Comments
+router.post('/:id/comments', authenticate, ideaController.createComment); // Create comment
 
-// ===========================
-// Routes for /api/ideas/:id
-// ===========================
-
-// GET: Get one idea by ID (auth required)
-// DELETE: Delete idea by ID (only creator can delete)
-// PUT: Update idea by ID (only creator can update)
-router.route('/:id')
-  .get(authenticate, ideaController.getOne)
-  .delete(authenticate, ideaController.delete)
-  .put(authenticate, ideaController.update);
-
-// ===========================
-// Routes for user-specific data
-// ===========================
-
-// Get all ideas by a specific user (auth required)
-router.get('/user/:userId', authenticate, ideaController.getByUser);
-
-// ================================
-// Route for toggling like status
-// ================================
-
-// PATCH: Like/unlike an idea by ID (auth required)
-router.patch('/:id/like', authenticate, ideaController.toggleLike);
-
-// GET: Get all likers for a specific idea
-router.get('/:id/likes', authenticate, ideaController.getLikes);
+// 🚀 Update and Delete
+router.put('/:id', authenticate, ideaController.update); // Update an idea
+router.delete('/:id', authenticate, ideaController.delete); // Delete an idea
 
 export default router;

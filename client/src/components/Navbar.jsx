@@ -19,8 +19,9 @@ const Navbar = () => {
     try {
       await userService.logout();
       setUser(false);
+      console.log('✅ User logged out successfully');
     } catch (err) {
-      console.error('Logout failed:', err);
+      console.error('❌ Logout failed:', err);
     }
   };
 
@@ -42,7 +43,10 @@ const Navbar = () => {
   const toggleDropdown = () => {
     const newState = !showDropdown;
     setShowDropdown(newState);
-    if (newState) markAllAsRead();
+    if (newState) {
+      markAllAsRead();
+      console.log('✅ All notifications marked as read');
+    }
   };
 
   return (
@@ -63,7 +67,7 @@ const Navbar = () => {
                   onClick={toggleDropdown}
                   title="Notifications"
                 >
-                  🔔
+              
                 </span>
 
                 {unreadCount > 0 && (
