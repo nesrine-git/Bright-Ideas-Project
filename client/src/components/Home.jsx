@@ -18,22 +18,8 @@ const Home = () => {
 
     const nav = useNavigate();
 
-    useEffect(() => {
-        fetchUserId();
-        fetchIdeas(filter);
-    }, [filter]);
-
-    const fetchUserId = async () => {
-        try {
-            const user = await userService.getCurrentUser();
-            setUserId(user.data._id);
-        } catch (err) {
-            console.error("Error fetching user:", err);
-            nav('/');
-        }
-    };
-
-    const fetchIdeas = async (filter) => {
+    const fetchIdeas = async () => {
+        if (!userId) return;
         try {
             let res;
             if (filter === 'mostSupported') {
@@ -45,10 +31,30 @@ const Home = () => {
             }
             setIdeas(res.data);
         } catch (err) {
-            if (err.response?.status === 401) nav('/');
-            else console.error("Failed to fetch ideas:", err);
+            if (err.response?.status === 401) {
+                nav('/');
+            } else {
+                console.error("Failed to fetch ideas:", err);
+            }
         }
     };
+
+    useEffect(() => {
+        const fetchUserId = async () => {
+            try {
+                const user = await userService.getCurrentUser();
+                setUserId(user.data._id);
+            } catch (err) {
+                console.error("Error fetching user:", err);
+                nav('/');
+            }
+        };
+        fetchUserId();
+    }, [nav]);
+
+    useEffect(() => {
+        fetchIdeas();
+    }, [filter, userId]);
 
     const validateForm = () => Object.values(formErrors).every(error => error === '');
 
@@ -82,24 +88,26 @@ const Home = () => {
             setFormData({ title: '', content: '', emotionalContext: '' });
             setFormErrors({ title: 'Title is required', content: 'Content is required', emotionalContext: '' });
             setEnteredForm(false);
-            fetchIdeas(filter);
+            setShowCreateForm(false);
+            fetchIdeas();
         } catch (err) {
             setErrors(err.response?.data || { message: 'Something went wrong' });
         }
     };
 
-    const handleDelete = (id) => {
-        ideaService.delete(id)
-            .then(() => {
-                setIdeas(prev => prev.filter(idea => idea._id !== id));
-            })
-            .catch(err => console.error('❌ Delete failed:', err.response?.data || err.message));
+    const handleDelete = async (id) => {
+        try {
+            await ideaService.delete(id);
+            fetchIdeas();
+        } catch (err) {
+            console.error('❌ Delete failed:', err.response?.data || err.message);
+        }
     };
 
     const handleUpdate = async (id, updatedData) => {
         try {
             const updated = await ideaService.update(id, updatedData);
-            setIdeas(prev => prev.map(idea => idea._id === id ? updated : idea));
+            fetchIdeas();
             return updated;
         } catch (err) {
             console.error('❌ Update failed:', err);
@@ -107,32 +115,21 @@ const Home = () => {
         }
     };
 
-    const handleSupportToggle = (id) => toggleReaction(id, 'support');
-    const handleInspireToggle = (id) => toggleReaction(id, 'inspire');
-
     const toggleReaction = async (id, type) => {
+        if (!userId) return;
+
         const serviceFn = type === 'support' ? ideaService.toggleSupport : ideaService.toggleInspiration;
-        const field = type === 'support' ? 'supports' : 'inspirations';
 
         try {
             await serviceFn(id);
-            setIdeas(prevIdeas =>
-                prevIdeas.map(idea => {
-                    if (idea._id !== id) return idea;
-
-                    const currentList = Array.isArray(idea[field]) ? idea[field] : [];
-                    const alreadyReacted = currentList.includes(userId);
-                    const updatedList = alreadyReacted
-                        ? currentList.filter(uid => uid !== userId)
-                        : [...currentList, userId];
-
-                    return { ...idea, [field]: updatedList };
-                })
-            );
+            fetchIdeas(); // Always fetch after reaction to ensure updated list
         } catch (err) {
             console.error(`Error toggling ${type}:`, err);
         }
     };
+
+    const handleSupportToggle = (id) => toggleReaction(id, 'support');
+    const handleInspireToggle = (id) => toggleReaction(id, 'inspiration');
 
     const handleFilterChange = (newFilter) => {
         setFilter(newFilter);
@@ -149,32 +146,38 @@ const Home = () => {
             <Navbar />
             <div className="flex">
                 {/* Sidebar */}
-                <div className="w-64 bg-gray-800 text-white p-4">
-                    <div className="space-y-2">
-                        <button
-                            onClick={() => handleFilterChange('all')}
-                            className={`w-full px-4 py-2 rounded-md ${filter === 'all' ? 'bg-red-400 text-white shadow-md' : 'bg-gray-600'}`}
-                        >
-                            Recent Ideas
-                        </button>
-                        <button
-                            onClick={() => handleFilterChange('mostSupported')}
-                            className={`w-full px-4 py-2 rounded-md ${filter === 'mostSupported' ? 'bg-green-400 text-white' : 'bg-gray-600'}`}
-                        >
-                            Most Supported
-                        </button>
-                        <button
-                            onClick={() => handleFilterChange('mostInspiring')}
-                            className={`w-full px-4 py-2 rounded-md ${filter === 'mostInspiring' ? 'bg-purple-300 text-white' : 'bg-gray-600'}`}
-                        >
-                            Most Inspiring
-                        </button>
-                    </div>
+                <div className="w-64 m-1 shadow bg-yellow-100 text-white p-4 space-y-3">
+                    {['all', 'mostSupported', 'mostInspiring'].map(key => {
+                        const label = {
+                            all: 'Recent Ideas',
+                            mostSupported: 'Most Supported',
+                            mostInspiring: 'Most Inspiring',
+                        }[key];
+
+                        const color = {
+                            all: 'red',
+                            mostSupported: 'green',
+                            mostInspiring: 'yellow',
+                        }[key];
+
+                        return (
+                            <button
+                                key={key}
+                                onClick={() => handleFilterChange(key)}
+                                className={`w-full px-4 py-2 rounded-md transition duration-200 ${
+                                    filter === key
+                                        ? `bg-${color}-400 shadow text-white`
+                                        : 'bg-gray-600 hover:bg-gray-700'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Main Content */}
-                <div className=" w-full p-5">
-                    {/* Link to show IdeaForm */}
+                <div className="w-full p-5">
                     <div className="mb-5 text-center">
                         <p className="text-lg font-semibold text-gray-700">
                             "The best ideas come from action. Create yours now!"
@@ -183,7 +186,7 @@ const Home = () => {
                             onClick={toggleCreateForm}
                             className="text-blue-500 hover:text-blue-700"
                         >
-                            Create Idea
+                            {showCreateForm ? 'Hide Form' : 'Create Idea'}
                         </button>
                     </div>
 

@@ -15,7 +15,6 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
 
   const isSupported = supports.includes(userId);
   const isInspiring = inspiring.includes(userId);
-  console.log(inspiring, isInspiring);
   
 
   const handleToggleSupport = async (id) => {
@@ -59,7 +58,7 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
   return (
   <div className="relative bg-white rounded-2xl shadow-md mb-6 border border-gray-200">
     {/* Card Header */}
-    <div className="bg-gray-100 p-2 rounded-t-2xl flex items-center justify-between">
+    <div className="bg-yellow-100 p-2 rounded-t-2xl flex items-center justify-between">
       {/* User Info */}
       <div className="flex items-center gap-2 text-gray-400">
         {idea.creator.image ? (

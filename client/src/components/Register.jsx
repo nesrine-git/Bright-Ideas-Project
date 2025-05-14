@@ -89,7 +89,9 @@ const Register = () => {
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{
-        backgroundImage: 'url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1AWJnlcIHpCv8NFjgBJxacwwSv5fPW5peAw&s")', 
+       backgroundImage: 'url("./assets/DalleWorkspace.jpg")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
       }}
     >
       <div className="bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-xl shadow-lg w-full max-w-md">

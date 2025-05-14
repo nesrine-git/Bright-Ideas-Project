@@ -39,8 +39,31 @@ const CommentCard = ({
           </button>
         </>
       ) : (
-        <div className="flex flex-col gap-2">
-          {/* User Profile Image or Initials */}
+        <div className="flex flex-col gap-2 relative">
+          {/* Settings Dropdown (Top-right corner) */}
+          {comment.creator._id === userId && (
+            <div className="absolute top-0 right-0">
+              <Dropdown align="end">
+                <Dropdown.Toggle
+                  variant="transparent"
+                  size="sm"
+                  className="text-gray-500 border-0 hover:text-gray-700"
+                >
+                  ⚙️
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={onEditStart} className="text-blue-600">
+                    ✏️ Edit
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={onDelete} className="text-red-600">
+                    🗑 Delete
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+          )}
+
+          {/* User Info */}
           <div className="flex items-center gap-2">
             {comment.creator.image ? (
               <img
@@ -53,54 +76,36 @@ const CommentCard = ({
                 {comment.creator.name?.charAt(0).toUpperCase()}
               </div>
             )}
-            <strong>
-              <Link
-                to={`/users/${comment.creator._id}`}
-                className="text-decoration-underline text-blue-500 hover:text-blue-700"
-              >
-                {comment.creator.alias || comment.creator.name}
-              </Link>
-            </strong>
+            <div>
+              <strong>
+                <Link
+                  to={`/users/${comment.creator._id}`}
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  {comment.creator.alias || comment.creator.name} :
+                </Link>
+              </strong>
+            </div>
+            {/* Comment Content */}
+            <div className="ml-1 text-dark-500 dark:text-dark-90">
+              {comment.content}
+            </div>
+
           </div>
 
-          {/* Comment content */}
-          <div>{comment.content}</div>
-
-          {/* Display the creation date */}
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {new Date(comment.createdAt).toLocaleString()}
-          </div>
-
-          {/* Like Icon */}
-          <div className="flex items-center gap-2">
+          
+          {/* Footer with Date and Like */}
+          <div className="ml-10 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+            <span>{new Date(comment.createdAt).toLocaleString()}</span>
             <button
-              className={`px-2 py-1 text-sm rounded-lg ${hasLiked ? 'text-red-600' : 'text-gray-500'} hover:${hasLiked ? 'text-red-700' : 'text-gray-600'}`}
               onClick={onLike}
+              className={`px-2 py-1 text-sm rounded-lg transition-colors duration-200 ${
+                hasLiked ? 'text-red-600 hover:text-red-700' : 'text-gray-500 hover:text-gray-600'
+              }`}
             >
               {hasLiked ? '💔' : '❤️'} {comment.likes?.length || 0}
             </button>
           </div>
-
-          {/* Edit/Delete Actions */}
-          {comment.creator._id === userId && (
-            <Dropdown align="end">
-              <Dropdown.Toggle
-                variant="transparent"
-                size="sm"
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ⚙️
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item onClick={onEditStart} className="text-blue-600">
-                  ✏️ Edit
-                </Dropdown.Item>
-                <Dropdown.Item onClick={onDelete} className="text-red-600">
-                  🗑 Delete
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          )}
         </div>
       )}
     </li>

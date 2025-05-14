@@ -147,7 +147,7 @@ const Navbar = () => {
               {/* Logout Button */}
               <span
                 onClick={handleLogout}
-                className={`text-white font-bold cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
+                className={` font-bold cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
               >
                 Logout
               </span>

@@ -3,7 +3,7 @@ import Comment from '../models/comment.model.js';
 import response from '../utils/response.js';
 import notificationController from './notification.controller.js';
 
-const POPULATE_CREATOR = 'alias name _id';
+const POPULATE_CREATOR = 'alias name _id image';
 
 const ideaController = {
   // ✅ Create a new idea
