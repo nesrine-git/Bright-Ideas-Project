@@ -13,13 +13,15 @@ const Home = () => {
     const [enteredForm, setEnteredForm] = useState(false);
     const [ideas, setIdeas] = useState([]);
     const [userId, setUserId] = useState(null);
+    const [filter, setFilter] = useState('all');
+    const [showCreateForm, setShowCreateForm] = useState(false);
 
     const nav = useNavigate();
 
     useEffect(() => {
         fetchUserId();
-        fetchIdeas();
-    }, []);
+        fetchIdeas(filter);
+    }, [filter]);
 
     const fetchUserId = async () => {
         try {
@@ -31,9 +33,16 @@ const Home = () => {
         }
     };
 
-    const fetchIdeas = async () => {
+    const fetchIdeas = async (filter) => {
         try {
-            const res = await ideaService.getAll();
+            let res;
+            if (filter === 'mostSupported') {
+                res = await ideaService.getMostSupported();
+            } else if (filter === 'mostInspiring') {
+                res = await ideaService.getMostInspiring();
+            } else {
+                res = await ideaService.getAll();
+            }
             setIdeas(res.data);
         } catch (err) {
             if (err.response?.status === 401) nav('/');
@@ -73,7 +82,7 @@ const Home = () => {
             setFormData({ title: '', content: '', emotionalContext: '' });
             setFormErrors({ title: 'Title is required', content: 'Content is required', emotionalContext: '' });
             setEnteredForm(false);
-            fetchIdeas();
+            fetchIdeas(filter);
         } catch (err) {
             setErrors(err.response?.data || { message: 'Something went wrong' });
         }
@@ -98,9 +107,12 @@ const Home = () => {
         }
     };
 
+    const handleSupportToggle = (id) => toggleReaction(id, 'support');
+    const handleInspireToggle = (id) => toggleReaction(id, 'inspire');
+
     const toggleReaction = async (id, type) => {
         const serviceFn = type === 'support' ? ideaService.toggleSupport : ideaService.toggleInspiration;
-        const field = type === 'support' ? 'supports' : 'inspiring';
+        const field = type === 'support' ? 'supports' : 'inspirations';
 
         try {
             await serviceFn(id);
@@ -122,33 +134,79 @@ const Home = () => {
         }
     };
 
-    const handleSupportToggle = (id) => toggleReaction(id, 'support');
-    const handleInspireToggle = (id) => toggleReaction(id, 'inspire');
+    const handleFilterChange = (newFilter) => {
+        setFilter(newFilter);
+    };
+
+    const toggleCreateForm = () => {
+        setShowCreateForm(!showCreateForm);
+    };
 
     if (!userId) return <div className="text-center mt-5">Loading...</div>;
 
     return (
         <div>
             <Navbar />
-            <div className="container mt-6">
+            <div className="flex">
+                {/* Sidebar */}
+                <div className="w-64 bg-gray-800 text-white p-4">
+                    <div className="space-y-2">
+                        <button
+                            onClick={() => handleFilterChange('all')}
+                            className={`w-full px-4 py-2 rounded-md ${filter === 'all' ? 'bg-red-400 text-white shadow-md' : 'bg-gray-600'}`}
+                        >
+                            Recent Ideas
+                        </button>
+                        <button
+                            onClick={() => handleFilterChange('mostSupported')}
+                            className={`w-full px-4 py-2 rounded-md ${filter === 'mostSupported' ? 'bg-green-400 text-white' : 'bg-gray-600'}`}
+                        >
+                            Most Supported
+                        </button>
+                        <button
+                            onClick={() => handleFilterChange('mostInspiring')}
+                            className={`w-full px-4 py-2 rounded-md ${filter === 'mostInspiring' ? 'bg-purple-300 text-white' : 'bg-gray-600'}`}
+                        >
+                            Most Inspiring
+                        </button>
+                    </div>
+                </div>
 
-                <IdeaForm
-                    formData={formData}
-                    formErrors={formErrors}
-                    errors={errors}
-                    enteredForm={enteredForm}
-                    handleChange={handleChange}
-                    handleSubmit={handleSubmit}
-                />
+                {/* Main Content */}
+                <div className=" w-full p-5">
+                    {/* Link to show IdeaForm */}
+                    <div className="mb-5 text-center">
+                        <p className="text-lg font-semibold text-gray-700">
+                            "The best ideas come from action. Create yours now!"
+                        </p>
+                        <button
+                            onClick={toggleCreateForm}
+                            className="text-blue-500 hover:text-blue-700"
+                        >
+                            Create Idea
+                        </button>
+                    </div>
 
-                <IdeaList
-                    ideas={ideas}
-                    userId={userId}
-                    onSupportToggle={handleSupportToggle}
-                    onInspireToggle={handleInspireToggle}
-                    onDelete={handleDelete}
-                    onUpdate={handleUpdate}
-                />
+                    {showCreateForm && (
+                        <IdeaForm
+                            formData={formData}
+                            formErrors={formErrors}
+                            errors={errors}
+                            enteredForm={enteredForm}
+                            handleChange={handleChange}
+                            handleSubmit={handleSubmit}
+                        />
+                    )}
+
+                    <IdeaList
+                        ideas={ideas}
+                        userId={userId}
+                        onSupportToggle={handleSupportToggle}
+                        onInspireToggle={handleInspireToggle}
+                        onDelete={handleDelete}
+                        onUpdate={handleUpdate}
+                    />
+                </div>
             </div>
         </div>
     );

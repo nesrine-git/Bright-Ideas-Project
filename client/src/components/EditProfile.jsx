@@ -92,88 +92,89 @@ const EditProfile = () => {
     <div className={theme.mode === 'dark' ? 'dark' : ''}> {/* Conditionally apply dark mode */}
       <Navbar />
       <div className={`min-h-screen ${theme.background} transition-all`}>
-        <div className={`container mx-auto p-6 ${theme.text}`}>
-
-          <form onSubmit={handleSubmit} encType="multipart/form-data">
-            <div className="flex items-center gap-4 mb-6">
-              {/* Profile Picture */}
-              {user.image ? (
+        <div className="flex justify-center items-center min-h-screen p-6">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md">
+            <form onSubmit={handleSubmit} encType="multipart/form-data">
+              <div className="flex items-center justify-center gap-4 mb-6">
+                {/* Profile Picture */}
+                {user.image ? (
                   <img
                     src={`http://localhost:3000/uploads/${user.image}`}
                     alt="profile"
                     className="w-16 h-16 rounded-full border-2 border-gray-300"
                   />
                 ) : (
-                  <div className="rounded-full bg-gray-400 text-white flex justify-center items-center w-9 h-9">
+                  <div className="rounded-full bg-gray-400 text-white flex justify-center items-center w-16 h-16">
                     {user.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
-              
-              <h2 className={`text-2xl font-semibold ${theme.text}`}>
-                {user.alias}'s Profile
-              </h2>
-            </div>
+                
+                <h2 className={`text-2xl font-semibold ${theme.text}`}>
+                  {user.alias}'s Profile
+                </h2>
+              </div>
 
-            <div className="mb-4">
-              <label className={`block text-lg ${theme.text}`}>Name</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 mt-2 border ${theme.border} rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white`}
-              />
-            </div>
+              <div className="mb-4">
+                <label className={`block text-lg ${theme.text}`}>Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 mt-2 border ${theme.border} rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-400`}
+                />
+              </div>
 
-            <div className="mb-4">
-              <label className={`block text-lg ${theme.text}`}>Alias</label>
-              <input
-                type="text"
-                name="alias"
-                value={formData.alias}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 mt-2 border ${theme.border} rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white`}
-              />
-            </div>
+              <div className="mb-4">
+                <label className={`block text-lg ${theme.text}`}>Alias</label>
+                <input
+                  type="text"
+                  name="alias"
+                  value={formData.alias}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 mt-2 border ${theme.border} rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-400`}
+                />
+              </div>
 
-            <div className="mb-4">
-              <label className={`block text-lg ${theme.text}`}>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 mt-2 border ${theme.border} rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white`}
-              />
-            </div>
+              <div className="mb-4">
+                <label className={`block text-lg ${theme.text}`}>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 mt-2 border ${theme.border} rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-400`}
+                />
+              </div>
 
-            <div className="mb-4">
-              <label className={`block text-lg ${theme.text}`}>Profile Picture (optional)</label>
-              <input
-                type="file"
-                name="profilePicture"
-                onChange={handleChange}
-                accept="image/*"
-                className="w-full mt-2 text-sm file:border file:rounded-md file:bg-blue-500 file:text-white file:px-4 file:py-2 dark:bg-gray-800 dark:text-white"
-              />
-            </div>
+              <div className="mb-4">
+                <label className={`block text-lg ${theme.text}`}>Profile Picture (optional)</label>
+                <input
+                  type="file"
+                  name="profilePicture"
+                  onChange={handleChange}
+                  accept="image/*"
+                  className="w-full mt-2 text-sm  file:bg-gray-500 file:text-white file:px-4 file:py-2 dark:bg-gray-700 dark:text-white file:hover:bg-gray-600"
+                />
+              </div>
 
-            <div className="flex gap-4 mt-6">
-              <button
-                type="submit"
-                className={`px-6 py-2 ${theme.buttonBg} text-white rounded-md hover:bg-blue-600`}
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
-                onClick={handleCancel}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+              <div className="flex gap-4 mt-6">
+                <button
+                  type="submit"
+                  className={`px-6 py-2 ${theme.buttonBg} text-white rounded-md hover:bg-blue-600`}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
