@@ -39,23 +39,6 @@ const ideaService = {
       });
   },
 
-
-// Add this to ideaService.js
-
-toggleInspiring: (id) => {
-  console.log(`Toggling inspiring for idea with ID: ${id}`);
-  return http.patch(`/${id}/inspiring`)
-    .then(res => res.data.data)
-    .catch(err => {
-      console.error(`Error toggling inspiring for idea with ID ${id}:`, err);
-      throw err;
-    });
-},
-
-
-
-
-
   // Get most inspiring ideas
   getMostInspiring: () => {
     console.log('Fetching most inspiring ideas...');
@@ -155,16 +138,6 @@ toggleInspiring: (id) => {
       });
   },
 
-  // Get likes for an idea (optional)
-  getLikes: (ideaId) => {
-    console.log(`Fetching all likers for idea with ID: ${ideaId}`);
-    return http.get(`/${ideaId}/likes`)
-      .then(res => res.data.data)
-      .catch(err => {
-        console.error(`Error fetching likers for idea with ID ${ideaId}:`, err);
-        throw err;
-      });
-  },
 };
 
 export default ideaService;

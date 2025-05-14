@@ -93,31 +93,22 @@ const EditProfile = () => {
       <Navbar />
       <div className={`min-h-screen ${theme.background} transition-all`}>
         <div className={`container mx-auto p-6 ${theme.text}`}>
-          {/* Dark Mode Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className={`${theme.buttonBg} text-white px-4 py-2 mb-6 rounded-full hover:bg-blue-600`}
-          >
-            {theme.mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          </button>
 
           <form onSubmit={handleSubmit} encType="multipart/form-data">
             <div className="flex items-center gap-4 mb-6">
               {/* Profile Picture */}
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="profile"
-                  className="w-16 h-16 rounded-full border-2 border-gray-300"
-                />
-              ) : (
-                <div
-                  className="w-16 h-16 rounded-full bg-gray-400 flex items-center justify-center text-white text-2xl"
-                >
-                  {user.name?.charAt(0).toUpperCase()}
-                </div>
-              )}
-
+              {user.image ? (
+                  <img
+                    src={`http://localhost:3000/uploads/${user.image}`}
+                    alt="profile"
+                    className="w-16 h-16 rounded-full border-2 border-gray-300"
+                  />
+                ) : (
+                  <div className="rounded-full bg-gray-400 text-white flex justify-center items-center w-9 h-9">
+                    {user.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              
               <h2 className={`text-2xl font-semibold ${theme.text}`}>
                 {user.alias}'s Profile
               </h2>

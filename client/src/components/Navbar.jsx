@@ -65,7 +65,6 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
           {user && typeof user === 'object' ? (
             <div className="flex items-center gap-4">
-
               {/* Notification Bell */}
               <div ref={bellRef} style={{ position: 'relative' }}>
                 <span
