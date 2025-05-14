@@ -128,10 +128,9 @@ const Home = () => {
     if (!userId) return <div className="text-center mt-5">Loading...</div>;
 
     return (
-        <>
+        <div>
             <Navbar />
-            <div className="container mt-4">
-                <h1 className="text-center mb-4">💡 Welcome to the Idea Board</h1>
+            <div className="container mt-6">
 
                 <IdeaForm
                     formData={formData}
@@ -151,7 +150,7 @@ const Home = () => {
                     onUpdate={handleUpdate}
                 />
             </div>
-        </>
+        </div>
     );
 };
 

@@ -2,6 +2,7 @@ import React from 'react';
 
 const IdeaForm = ({ formData, formErrors, errors, enteredForm, handleChange, handleSubmit }) => {
     return (
+        <div className='container '>
         <form onSubmit={handleSubmit} className="card p-4 shadow-sm mb-5">
             <h4 className="mb-3">Share a New Idea</h4>
 
@@ -51,6 +52,7 @@ const IdeaForm = ({ formData, formErrors, errors, enteredForm, handleChange, han
 
             <button className="btn btn-success">Submit Idea</button>
         </form>
+        </div>
     );
 };
 
