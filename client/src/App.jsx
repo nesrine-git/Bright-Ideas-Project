@@ -12,8 +12,9 @@ import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider } from './context/ThemeContext'; // ✅ import ThemeProvider
 import EditProfile from './components/EditProfile';
-
 function App() {
+
+
   return (
     <AuthProvider>
       <NotificationProvider>
@@ -29,7 +30,7 @@ function App() {
           </Routes>
         </ThemeProvider>
       </NotificationProvider>
-    </AuthProvider>
+    </AuthProvider>  
   );
 }
 

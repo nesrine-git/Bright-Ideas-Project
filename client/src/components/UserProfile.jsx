@@ -3,9 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import userService from '../services/userService';
 import ideaService from '../services/ideaService';
 import Navbar from './Navbar';
+import { useTheme } from '../context/ThemeContext';
 
 const UserProfile = () => {
   const { id } = useParams();
+  const { theme } = useTheme();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState(null);
@@ -27,7 +29,7 @@ const UserProfile = () => {
   }, [id]);
 
   if (error) {
-    return <p className="text-red-600 text-center mt-4">{error}</p>;
+    return <p style={{ color: theme.colors.supportText }} className="text-center mt-4">{error}</p>;
   }
 
   if (!user) {
@@ -45,9 +47,19 @@ const UserProfile = () => {
   }, 0);
 
   return (
-    <>
+    <div style={{
+          backgroundColor: theme.colors.cardBg,
+          color: theme.colors.text
+        }}>
       <Navbar />
-      <div className="max-w-4xl mx-auto p-6">
+      <div
+        className="max-w-4xl mx-auto p-6"
+        style={{
+          backgroundColor: theme.colors.cardBg,
+          color: theme.colors.text,
+          minHeight: '100vh',
+        }}
+      >
         <div className="flex items-center gap-4 mb-6">
           {user.image ? (
             <img
@@ -63,7 +75,14 @@ const UserProfile = () => {
           <h3 className="text-xl font-semibold">{user.alias || user.name}</h3>
         </div>
 
-        <div className="bg-white shadow-md rounded-xl p-6 space-y-3">
+        <div
+          className="shadow-md rounded-xl p-6 space-y-3"
+          style={{
+            backgroundColor: theme.colors.cardBg,
+            borderColor: theme.colors.border,
+            borderWidth: '1px',
+          }}
+        >
           <p><span className="font-semibold">Name:</span> {user.name}</p>
           <p><span className="font-semibold">Alias:</span> {user.alias}</p>
           <p><span className="font-semibold">Email:</span> {user.email}</p>
@@ -74,11 +93,21 @@ const UserProfile = () => {
         <h4 className="text-lg font-semibold mt-8 mb-2">🧠 Ideas by {user.alias || user.name}</h4>
 
         {posts.length === 0 ? (
-          <p className="text-gray-500 italic">No ideas posted yet.</p>
+          <p className="italic text-gray-500">No ideas posted yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto border border-gray-200 mt-2 text-sm">
-              <thead className="bg-gray-100">
+          <div className="overflow-x-auto mt-2">
+            <table
+              className="w-full table-auto text-sm"
+              style={{ borderColor: theme.colors.border, borderWidth: '1px' }}
+            >
+              <thead
+                style={{
+                  backgroundColor: theme.mode === 'dark'
+                    ? theme.colors.border
+                    : theme.colors.background,
+                  color: theme.colors.text,
+                }}
+              >
                 <tr>
                   <th className="text-left px-4 py-2 border-b">Title</th>
                   <th className="text-left px-4 py-2 border-b">Supports</th>
@@ -87,17 +116,25 @@ const UserProfile = () => {
               </thead>
               <tbody>
                 {posts.map(post => (
-                  <tr key={post._id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 border-b">
+                  <tr
+                    key={post._id}
+                    className="transition-colors"
+                    style={{
+                      backgroundColor: theme.colors.cardBg,
+                      borderBottom: `1px solid ${theme.colors.border}`,
+                    }}
+                  >
+                    <td className="px-4 py-2">
                       <Link
                         to={`/ideas/${post._id}/likes`}
-                        className="text-blue-600 hover:underline"
+                        style={{ color: theme.colors.linkText }}
+                        className="hover:underline"
                       >
                         {post.title}
                       </Link>
                     </td>
-                    <td className="px-4 py-2 border-b">{post.supports?.length || 0}</td>
-                    <td className="px-4 py-2 border-b">{post.inspirations?.length || 0}</td>
+                    <td className="px-4 py-2">{post.supports?.length || 0}</td>
+                    <td className="px-4 py-2">{post.inspirations?.length || 0}</td>
                   </tr>
                 ))}
               </tbody>
@@ -105,7 +142,7 @@ const UserProfile = () => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

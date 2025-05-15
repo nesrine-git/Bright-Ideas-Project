@@ -5,6 +5,9 @@ import userService from '../services/userService';
 import Navbar from './Navbar';
 import IdeaForm from './IdeaForm';
 import IdeaList from './IdeaList';
+import { useTheme } from '../context/ThemeContext';
+import { toast } from 'react-toastify';
+
 
 const Home = () => {
     const [formData, setFormData] = useState({ title: '', content: '', emotionalContext: '' });
@@ -15,6 +18,13 @@ const Home = () => {
     const [userId, setUserId] = useState(null);
     const [filter, setFilter] = useState('all');
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const emptyForm = {
+    title: '',
+    content: '',
+    emotionalContext: ''
+  };
+
+
 
     const nav = useNavigate();
 
@@ -90,6 +100,7 @@ const Home = () => {
             setEnteredForm(false);
             setShowCreateForm(false);
             fetchIdeas();
+            toast.success('Idea created successfully!');
         } catch (err) {
             setErrors(err.response?.data || { message: 'Something went wrong' });
         }
@@ -136,83 +147,107 @@ const Home = () => {
     };
 
     const toggleCreateForm = () => {
-        setShowCreateForm(!showCreateForm);
-    };
-
+      if (!showCreateForm) {
+      setFormData(emptyForm); // Reset when showing
+      setFormErrors({});
+      setErrors({});
+      setEnteredForm(false);
+    }
+    setShowCreateForm(prev => !prev);
+  };
+  
     if (!userId) return <div className="text-center mt-5">Loading...</div>;
 
-    return (
-        <div>
-            <Navbar />
-            <div className="flex">
-                {/* Sidebar */}
-                <div className="w-64 m-1 shadow bg-yellow-100 text-white p-4 space-y-3">
-                    {['all', 'mostSupported', 'mostInspiring'].map(key => {
-                        const label = {
-                            all: 'Recent Ideas',
-                            mostSupported: 'Most Supported',
-                            mostInspiring: 'Most Inspiring',
-                        }[key];
 
-                        const color = {
-                            all: 'red',
-                            mostSupported: 'green',
-                            mostInspiring: 'yellow',
-                        }[key];
+  const { theme } = useTheme(); // <-- get theme from context
+  const isDark = theme.mode === 'dark';
 
-                        return (
-                            <button
-                                key={key}
-                                onClick={() => handleFilterChange(key)}
-                                className={`w-full px-4 py-2 rounded-md transition duration-200 ${
-                                    filter === key
-                                        ? `bg-${color}-400 shadow text-white`
-                                        : 'bg-gray-600 hover:bg-gray-700'
-                                }`}
-                            >
-                                {label}
-                            </button>
-                        );
-                    })}
-                </div>
+  // Map filter keys to readable labels and colors? from theme
+  const filterLabels = {
+    all: 'Recent Ideas',
+    mostSupported: 'Most Supported',
+    mostInspiring: 'Most Inspiring',
+  };
 
-                {/* Main Content */}
-                <div className="w-full p-5">
-                    <div className="mb-5 text-center">
-                        <p className="text-xl font-semibold text-gray-800 dark:text-gray-600 mb-3">
-                            "The best ideas come from action. Create yours now!"
-                        </p>
-                        <button
-                            onClick={toggleCreateForm}
-                            className="text-orange-600 hover:text-orange-700"
-                        >
-                            {showCreateForm ? 'Hide Form' : 'Create Idea'}
-                        </button>
-                    </div>
+  // Example: map keys to colors? from your theme
+  const filterColors = {
+    all: theme.colors?.supportBg,       
+    mostSupported: theme.colors?.inspireBg, // e.g. yellow or green-ish background
+    mostInspiring: theme.colors?.buttonBg, // e.g. amber/orange
+  };
 
-                    {showCreateForm && (
-                        <IdeaForm
-                            formData={formData}
-                            formErrors={formErrors}
-                            errors={errors}
-                            enteredForm={enteredForm}
-                            handleChange={handleChange}
-                            handleSubmit={handleSubmit}
-                        />
-                    )}
-
-                    <IdeaList
-                        ideas={ideas}
-                        userId={userId}
-                        onSupportToggle={handleSupportToggle}
-                        onInspireToggle={handleInspireToggle}
-                        onDelete={handleDelete}
-                        onUpdate={handleUpdate}
-                    />
-                </div>
-            </div>
+  return (
+    <div style={{backgroundColor: theme.colors?.cardBg,
+            color: theme.colors?.text,}}>
+      <Navbar />
+      <div className="flex">
+        {/* Sidebar */}
+        <div
+          className="w-64 m-1 shadow p-4 space-y-3 rounded"
+          style={{
+            backgroundColor: theme.colors?.background,
+            color: theme.colors?.text,
+          }}
+        >
+          {['all', 'mostSupported', 'mostInspiring'].map((key) => {
+            const selected = filter === key;
+            return (
+              <button
+                key={key}
+                onClick={() => handleFilterChange(key)}
+                className="w-full px-4 py-2 rounded-md transition duration-200"
+                style={{
+                  backgroundColor: selected
+                    ? filterColors[key]
+                    : theme.colors?.cardBg,
+                  color: selected ? theme.colors?.linkText : theme.colors?.text,
+                  boxShadow: selected ? '0 0 8px rgba(0,0,0,0.2)' : 'none',
+                }}
+              >
+                {filterLabels[key]}
+              </button>
+            );
+          })}
         </div>
-    );
+
+        {/* Main Content */}
+        <div className="w-full p-5" style={{ backgroundColor: theme.colors?.background, color: theme.colors?.text }}>
+          <div className="mb-5 text-center">
+            <p className="text-xl font-semibold mb-3" style={{ color: theme.colors?.text }}>
+              "The best ideas come from action. Create yours now!"
+            </p>
+            <button
+              onClick={toggleCreateForm}
+              style={{ color: theme.colors?.buttonLink }}
+              className="hover:underline"
+            >
+              {showCreateForm ? 'Hide Form' : 'Create Idea'}
+            </button>
+          </div>
+
+          {showCreateForm && (
+            <IdeaForm
+              formData={formData}
+              formErrors={formErrors}
+              errors={errors}
+              enteredForm={enteredForm}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+            />
+          )}
+
+          <IdeaList
+            ideas={ideas}
+            userId={userId}
+            onSupportToggle={handleSupportToggle}
+            onInspireToggle={handleInspireToggle}
+            onDelete={handleDelete}
+            onUpdate={handleUpdate}
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Home;

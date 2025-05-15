@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Toaster, toast } from 'react-hot-toast';
 import userService from '../services/userService';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
   const [isLogin, setIsLogin] = useState(false);
@@ -14,6 +17,7 @@ const Register = () => {
   const [formErrors, setFormErrors] = useState({});
   const [serverErrors, setServerErrors] = useState({});
   const nav = useNavigate();
+  const { setUser } = useAuth();
 
   const validateField = (name, value) => {
     const val = value.trim();
@@ -58,8 +62,6 @@ const Register = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // Live validate the field
     setFormErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
     setServerErrors((prev) => ({ ...prev, [name]: null }));
   };
@@ -71,10 +73,14 @@ const Register = () => {
     try {
       const action = isLogin ? userService.login : userService.register;
       const res = await action(formData);
+
+      setUser(res); // ✅ Update AuthContext immediately
+      toast.success(`${isLogin ? 'Logged in' : 'Registered'} successfully!`);
       nav('/home');
     } catch (err) {
       const data = err?.response?.data || { message: err.message || 'Unknown error' };
       setServerErrors(data.validations || { message: data.message });
+      toast.error(data.message || 'Authentication failed');
     }
   };
 
@@ -87,7 +93,15 @@ const Register = () => {
         backgroundPosition: 'center',
       }}
     >
-      <div className="bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-xl shadow-lg w-full max-w-md">
+      <Toaster position="top-center" />
+      <motion.div
+        key={isLogin ? 'login' : 'register'}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -40 }}
+        transition={{ duration: 0.4 }}
+        className="bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-xl shadow-lg w-full max-w-md"
+      >
         <h1 className="text-4xl font-bold text-indigo-700 text-center mb-1">Bright Ideas+</h1>
         <p className="text-center text-gray-600 italic mb-6">"Where creativity meets action."</p>
 
@@ -130,12 +144,11 @@ const Register = () => {
             {isLogin ? 'Register' : 'Login'}
           </button>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
-// Reusable input field component
 const InputField = ({ name, value, onChange, placeholder, type = "text", error, serverError }) => (
   <div>
     <input

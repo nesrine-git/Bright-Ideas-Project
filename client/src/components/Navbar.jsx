@@ -7,7 +7,12 @@ import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const { user, setUser } = useContext(AuthContext);
-  const { notifications, unreadCount, markAllAsRead } = useNotification();
+  const {
+    notifications = [], // Default to empty array for safety
+    unreadCount,
+    markAllAsRead,
+    deleteNotification
+  } = useNotification();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const bellRef = useRef(null);
@@ -52,12 +57,19 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`p-4 shadow-md ${theme.cardBg} ${theme.border}`}>
+    <nav
+      className="p-4 shadow-md"
+      style={{
+        backgroundColor: theme.colors?.cardBg,
+        borderBottom: `1px solid ${theme.colors?.border}`,
+      }}
+    >
       <div className="flex flex-wrap justify-between items-center max-w-7xl mx-auto">
         {/* Logo */}
         <div
           onClick={goHome}
-          className={`text-2xl font-bold cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
+          className="text-2xl font-bold cursor-pointer transition duration-300"
+          style={{ color: theme.colors?.linkText }}
         >
           Bright Ideas+
         </div>
@@ -70,7 +82,8 @@ const Navbar = () => {
                 <span
                   onClick={toggleDropdown}
                   title="Notifications"
-                  className={`text-xl cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
+                  className="text-xl cursor-pointer transition duration-300"
+                  style={{ color: theme.colors?.linkText }}
                 >
                   🔔
                 </span>
@@ -99,22 +112,50 @@ const Navbar = () => {
                 {showDropdown && (
                   <div
                     ref={dropdownRef}
-                    className={`absolute top-10 right-0 bg-white p-3 rounded-xl shadow-lg ${theme.cardBg} ${theme.border} z-50`}
-                    style={{ width: '300px', maxHeight: '300px', overflowY: 'auto' }}
+                    className="absolute top-10 right-0 p-3 rounded-xl shadow-lg z-50"
+                    style={{
+                      width: '300px',
+                      maxHeight: '300px',
+                      overflowY: 'auto',
+                      backgroundColor: theme.colors?.cardBg,
+                      border: `1px solid ${theme.colors?.border}`,
+                      color: theme.colors?.text,
+                    }}
                   >
                     <strong>Notifications</strong>
-                    <hr />
-                    {notifications.length === 0 ? (
-                      <p className="text-gray-500">No notifications</p>
+                    <hr
+                      className="my-1"
+                      style={{ borderColor: theme.colors?.border }}
+                    />
+                    {Array.isArray(notifications) && notifications.length === 0 ? (
+                      <p style={{ color: theme.colors?.text }} className="text-sm">
+                        No notifications
+                      </p>
                     ) : (
+                      Array.isArray(notifications) &&
                       notifications.map((n) => (
                         <div
                           key={n._id}
                           title={n.idea?.content || ''}
-                          className={`font-semibold ${n.read ? 'font-normal' : 'font-bold'} mb-2 text-sm`}
+                          className={`mb-2 text-sm flex justify-between items-start gap-2 ${
+                            n.read ? 'font-normal' : 'font-bold'
+                          }`}
+                          style={{ color: theme.colors?.text }}
                         >
-                          {n.sender?.username || 'Someone'} {n.type === 'like' ? 'liked' : 'commented on'} your idea:{' '}
-                          <em>{n.idea?.content?.slice(0, 30)}...</em>
+                          <div className="flex-1">
+                            {n.sender?.username || 'Someone'}{' '}
+                            {n.type === 'like'
+                              ? 'liked'
+                              : 'commented on'}{' '}
+                            your idea: <em>{n.idea?.content?.slice(0, 30)}...</em>
+                          </div>
+                          <button
+                            onClick={() => deleteNotification(n._id)}
+                            title="Delete notification"
+                            className="ml-2 text-xs text-red-500 hover:text-red-700 transition"
+                          >
+                            ✕
+                          </button>
                         </div>
                       ))
                     )}
@@ -134,35 +175,64 @@ const Navbar = () => {
                     className="rounded-full w-9 h-9 flex-shrink-0"
                   />
                 ) : (
-                  <div className="rounded-full bg-gray-400 text-white flex justify-center items-center w-9 h-9 flex-shrink-0">
+                  <div
+                    className="rounded-full bg-gray-400 text-white flex justify-center items-center w-9 h-9 flex-shrink-0"
+                    style={{ color: 'white' }}
+                  >
                     {user.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
 
                 <span
-                  className={`text-lg font-semibold truncate max-w-xs ${theme.linkText} hover:text-primary transition duration-300`}
+                  className="text-lg font-semibold truncate max-w-xs transition duration-300"
                   title={user.alias || user.name}
+                  style={{ color: theme.colors?.linkText }}
                 >
                   {user.alias || user.name}
                 </span>
               </div>
 
-              {/* Logout Button */}
+              {/* Logout */}
               <span
                 onClick={handleLogout}
-                className={`font-bold cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
+                className="font-bold cursor-pointer transition duration-300"
+                style={{ color: theme.colors?.linkText }}
+                onMouseEnter={(e) => (e.target.style.color = '#B45309')}
+                onMouseLeave={(e) =>
+                  (e.target.style.color = theme.colors?.linkText)
+                }
               >
                 Logout
               </span>
             </div>
           ) : (
-            <span className={`text-white ${theme.linkText}`}>Please log in</span>
+            <span style={{ color: theme.colors?.text }}>Please log in</span>
           )}
 
-          {/* Theme Toggle Button */}
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className={`ml-4 p-2 rounded-full ${theme.buttonBg} ${theme.textColor} hover:bg-primary hover:text-white transition duration-300`}
+            className="ml-4 p-2 rounded-full transition duration-300"
+            style={{
+              backgroundColor: theme.colors?.buttonBg,
+              color: theme.colors?.buttonText || theme.colors?.text,
+              border: 'none',
+            }}
+            onMouseEnter={(e) => {
+              if (theme.mode === 'light') {
+                e.target.style.backgroundColor = '#B45309';
+                e.target.style.color = '#FFF';
+              } else {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                e.target.style.color = '#FFF';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = theme.colors?.buttonBg;
+              e.target.style.color =
+                theme.colors?.buttonText || theme.colors?.text;
+            }}
+            aria-label="Toggle Theme"
           >
             {theme.mode === 'dark' ? '🌙' : '☀️'}
           </button>

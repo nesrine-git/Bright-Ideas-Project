@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Dropdown } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import CommentSection from './CommentSection';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { useTheme } from '../context/ThemeContext';
+import usePrefersDarkMode from '../hook/usePrefersDarkMode';
 
 const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, onUpdate }) => {
+  const { theme } = useTheme();
+  const isDarkMode = usePrefersDarkMode();
+  const colors = theme.colors;
+  console.log(colors)
+
   const [editingIdeaId, setEditingIdeaId] = useState(null);
   const [editedContent, setEditedContent] = useState({});
   const [showComments, setShowComments] = useState(false);
+
 
   const supports = Array.isArray(idea.supports) ? idea.supports : [];
   const inspiring = Array.isArray(idea.inspirations) ? idea.inspirations : [];
@@ -16,7 +22,7 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
   const isSupported = supports.includes(userId);
   const isInspiring = inspiring.includes(userId);
   
-
+  
   const handleToggleSupport = async (id) => {
     try {
       await onSupportToggle(id);
@@ -55,12 +61,23 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
     }
   };
 
- return (
-  <div className="relative bg-white rounded-2xl shadow-md mb-6 border border-gray-200">
+  
+
+return (
+  <div
+    className="relative rounded-2xl shadow-md mb-6"
+    style={{
+      backgroundColor: colors?.cardBg,
+      border: `1px solid ${colors?.border}`
+    }}
+  >
     {/* Card Header */}
-    <div className="bg-yellow-200 p-2 rounded-t-2xl flex flex-wrap items-center justify-between gap-y-2 sm:flex-nowrap">
+    <div
+      className="p-2 rounded-t-2xl flex flex-wrap items-center justify-between gap-y-2 sm:flex-nowrap"
+      style={{ backgroundColor: colors?.inspireBg }}
+    >
       {/* User Info */}
-      <div className="flex items-center gap-2 text-gray-400 min-w-0">
+      <div className="flex items-center gap-2 min-w-0" style={{ color: colors?.text }}>
         {idea.creator.image ? (
           <img
             src={`http://localhost:3000/uploads/${idea.creator.image}`}
@@ -68,11 +85,18 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
             className="rounded-full w-9 h-9 flex-shrink-0"
           />
         ) : (
-          <div className="rounded-full bg-gray-400 text-white flex justify-center items-center w-9 h-9 flex-shrink-0">
+          <div
+            className="rounded-full flex justify-center items-center w-9 h-9 flex-shrink-0"
+            style={{ backgroundColor: colors?.border, color: colors?.cardBg }}
+          >
             {idea.creator.name?.charAt(0).toUpperCase()}
           </div>
         )}
-        <Link to={`/users/${idea.creator._id}`} className="truncate underline text-blue-600">
+        <Link
+          to={`/users/${idea.creator._id}`}
+          className="truncate underline"
+          style={{ color: colors?.linkText }}
+        >
           {idea.creator.alias || idea.creator.name}
         </Link>
       </div>
@@ -89,13 +113,15 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
                 emotionalContext: idea.emotionalContext || ''
               });
             }}
-            className="text-blue-500 hover:text-blue-700 text-sm"
+            className="text-sm"
+            style={{ color: colors?.linkText }}
           >
             ✏️ Edit
           </button>
           <button
             onClick={handleDelete}
-            className="text-red-500 hover:text-red-700 text-sm"
+            className="text-sm"
+            style={{ color: colors?.supportText }}
           >
             🗑️ Delete
           </button>
@@ -107,32 +133,49 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
     {editingIdeaId === idea._id ? (
       <div className="space-y-2 p-3">
         <input
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          className="w-full px-3 py-2 border rounded-md"
+          style={{
+            backgroundColor: colors?.cardBg,
+            borderColor: colors?.border,
+            color: colors?.text
+          }}
           value={editedContent.title || ''}
           onChange={(e) => setEditedContent({ ...editedContent, title: e.target.value })}
           placeholder="Title"
         />
         <textarea
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          className="w-full px-3 py-2 border rounded-md"
+          style={{
+            backgroundColor: colors?.cardBg,
+            borderColor: colors?.border,
+            color: colors?.text
+          }}
           value={editedContent.content || ''}
           onChange={(e) => setEditedContent({ ...editedContent, content: e.target.value })}
           placeholder="Content"
         />
         <input
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          className="w-full px-3 py-2 border rounded-md"
+          style={{
+            backgroundColor: colors?.cardBg,
+            borderColor: colors?.border,
+            color: colors?.text
+          }}
           value={editedContent.emotionalContext || ''}
           onChange={(e) => setEditedContent({ ...editedContent, emotionalContext: e.target.value })}
           placeholder="Emotional Context"
         />
         <div className="flex flex-wrap gap-2">
           <button
-            className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+            className="px-3 py-1 text-sm rounded"
+            style={{ backgroundColor: '#10B981', color: '#fff' }}
             onClick={() => handleUpdateIdea(idea._id)}
           >
             💾 Save
           </button>
           <button
-            className="px-3 py-1 bg-gray-300 text-sm rounded hover:bg-gray-400"
+            className="px-3 py-1 text-sm rounded"
+            style={{ backgroundColor: colors?.border, color: colors?.text }}
             onClick={() => {
               setEditingIdeaId(null);
               setEditedContent({});
@@ -144,29 +187,39 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
       </div>
     ) : (
       <div className="p-3">
-        <h3 className="text-lg font-semibold text-gray-800">{idea.title}</h3>
-        <p className="text-gray-700">{idea.content}</p>
+        <h3 className="text-lg font-semibold" style={{ color: colors?.text }}>
+          {idea.title}
+        </h3>
+        <p style={{ color: colors?.text }}>{idea.content}</p>
         {idea.emotionalContext && (
-          <p className="text-sm text-gray-500">😊 {idea.emotionalContext}</p>
+          <p className="text-sm" style={{ color: colors?.text }}>
+            😊 {idea.emotionalContext}
+          </p>
         )}
       </div>
     )}
 
-    {/* Buttons - responsive spacing and wrapping */}
+    {/* Buttons */}
     <div className="px-3 pb-3 mt-2 flex flex-wrap gap-3 items-center text-sm">
       <button
-        className={`px-3 py-1 rounded-md border ${
-          isSupported ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
-        } hover:shadow`}
+        className="px-3 py-1 rounded-md border hover:shadow"
+        style={{
+          backgroundColor: isSupported ? colors?.supportBg : '#D1FAE5',
+          color: isSupported ? colors?.supportText : '#059669',
+          borderColor: colors?.border
+        }}
         onClick={() => handleToggleSupport(idea._id)}
       >
         {isSupported ? '❌ Support' : '✅ Support'}
       </button>
 
       <button
-        className={`px-3 py-1 rounded-md border ${
-          isInspiring ? 'bg-yellow-100 text-yellow-600' : 'bg-purple-100 text-purple-600'
-        } hover:shadow`}
+        className="px-3 py-1 rounded-md border hover:shadow"
+        style={{
+          backgroundColor: isInspiring ? colors?.inspireBg : '#E9D5FF',
+          color: isInspiring ? colors?.inspireText : '#7C3AED',
+          borderColor: colors?.border
+        }}
         onClick={() => handleToggleInspiring(idea._id)}
       >
         {isInspiring ? '❌ Inspire' : '✨ Inspire'}
@@ -174,13 +227,18 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
 
       <Link
         to={`/ideas/${idea._id}/likes`}
-        className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-semibold hover:bg-yellow-500"
+        className="px-2 py-1 rounded text-xs font-semibold hover:shadow"
+        style={{
+          backgroundColor: colors?.buttonBg,
+          color: '#000'
+        }}
       >
         {supports.length + inspiring.length} Reactions
       </Link>
 
       <button
-        className="px-2 py-1 text-blue-500 hover:text-blue-700"
+        className="px-2 py-1 hover:underline"
+        style={{ color: colors?.linkText }}
         onClick={() => setShowComments((prev) => !prev)}
       >
         💬 {showComments ? 'Hide Comments' : 'Show Comments'}
@@ -190,7 +248,7 @@ const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, on
     {/* Comments */}
     {showComments && (
       <>
-        <hr className="mx-3 my-4 border-gray-300" />
+        <hr className="mx-3 my-4" style={{ borderColor: colors?.border }} />
         <div className="px-3 pb-3">
           <CommentSection ideaId={idea._id} userId={userId} />
         </div>
