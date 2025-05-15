@@ -3,13 +3,11 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import CommentSection from './CommentSection';
 import { useTheme } from '../context/ThemeContext';
-import usePrefersDarkMode from '../hook/usePrefersDarkMode';
+
 
 const IdeaCard = ({ idea, userId, onSupportToggle, onInspireToggle, onDelete, onUpdate }) => {
   const { theme } = useTheme();
-  const isDarkMode = usePrefersDarkMode();
   const colors = theme.colors;
-  console.log(colors)
 
   const [editingIdeaId, setEditingIdeaId] = useState(null);
   const [editedContent, setEditedContent] = useState({});

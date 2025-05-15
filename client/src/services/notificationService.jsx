@@ -43,17 +43,20 @@ const notificationService = {
       });
   },
 
-  markAsRead: (notificationId) => {
-    console.log(`📩 Marking notification ${notificationId} as read...`);
-    return http.patch(`/${notificationId}/read`)
-      .then(res => {
-        console.log(`✅ Notification ${notificationId} marked as read:`, res.data);
-        return res.data;
-      })
-      .catch(err => { 
-        throw notificationService.handleError(err);
-      });
-  },
+ markAsRead: async (id) => {
+  if (!id) {
+    console.error('markAsRead called without id');
+    return;
+  }
+
+  try {
+    const response = await http.patch(`/${id}/read`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Server error marking notification as read:', error.response || error);
+    throw error;
+  }
+},
 
   deleteNotification: (notificationId) => {
     console.log(`🗑️ Deleting notification ${notificationId}...`);

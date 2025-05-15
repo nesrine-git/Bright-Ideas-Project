@@ -88,7 +88,7 @@ const Register = () => {
     <div
       className="min-h-screen flex items-center justify-center px-4 bg-gray-100"
       style={{
-        backgroundImage: 'url("https://images.unsplash.com/photo-1531496651712-85d51d5bc3b3?fit=crop&w=1200&q=80")',
+        backgroundImage: 'url("https://images.pexels.com/photos/1129413/pexels-photo-1129413.jpeg?cs=srgb&dl=pexels-valeriya-1129413.jpg&fm=jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}

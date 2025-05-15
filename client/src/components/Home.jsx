@@ -155,12 +155,12 @@ const Home = () => {
     }
     setShowCreateForm(prev => !prev);
   };
-  
+    const { theme } = useTheme(); // <-- get theme from context
+  const isDark = theme.mode === 'dark';
     if (!userId) return <div className="text-center mt-5">Loading...</div>;
 
 
-  const { theme } = useTheme(); // <-- get theme from context
-  const isDark = theme.mode === 'dark';
+
 
   // Map filter keys to readable labels and colors? from theme
   const filterLabels = {

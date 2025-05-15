@@ -2,7 +2,7 @@ import Notification from '../models/notification.model.js';
 import { sendNotificationToUser } from '../utils/socket.js';
 
 // Allowed notification types (matching your schema enum)
-const ALLOWED_TYPES = ['support', 'inspire', 'comment'];
+const ALLOWED_TYPES = ['support', 'inspiration', 'comment'];
 
 const notificationController = {
   // Get all notifications for a user with pagination

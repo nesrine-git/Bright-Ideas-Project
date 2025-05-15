@@ -1,18 +1,20 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
+import { useNotifications } from '../context/NotificationContext';
 import userService from '../services/userService';
+import notificationService from '../services/notificationService';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const { user, setUser } = useContext(AuthContext);
   const {
-    notifications = [], // Default to empty array for safety
+    notifications = [],
     unreadCount,
     markAllAsRead,
+    markAsRead,
     deleteNotification
-  } = useNotification();
+  } = useNotifications();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const bellRef = useRef(null);
@@ -48,12 +50,29 @@ const Navbar = () => {
   }, []);
 
   const toggleDropdown = () => {
-    const newState = !showDropdown;
-    setShowDropdown(newState);
-    if (newState) {
-      markAllAsRead();
-      console.log('✅ All notifications marked as read');
+    setShowDropdown((prev) => !prev);
+    // We don't mark all as read here anymore.
+  };
+
+  const handleBellKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleDropdown();
     }
+  };
+
+  const handleNotificationClick = async (id, read) => {
+  if (!read) {
+    try {
+      await markAsRead(id);
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  }
+};
+
+  const handleDelete = (id) => {
+      deleteNotification(id);
   };
 
   return (
@@ -70,6 +89,11 @@ const Navbar = () => {
           onClick={goHome}
           className="text-2xl font-bold cursor-pointer transition duration-300"
           style={{ color: theme.colors?.linkText }}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') goHome();
+          }}
+          aria-label="Go to home"
         >
           Bright Ideas+
         </div>
@@ -78,10 +102,18 @@ const Navbar = () => {
           {user && typeof user === 'object' ? (
             <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
               {/* Notification Bell */}
-              <div ref={bellRef} style={{ position: 'relative' }}>
+              <div
+                ref={bellRef}
+                style={{ position: 'relative' }}
+                tabIndex={0}
+                role="button"
+                aria-haspopup="true"
+                aria-expanded={showDropdown}
+                onClick={toggleDropdown}
+                onKeyDown={handleBellKeyDown}
+                title="Notifications"
+              >
                 <span
-                  onClick={toggleDropdown}
-                  title="Notifications"
                   className="text-xl cursor-pointer transition duration-300"
                   style={{ color: theme.colors?.linkText }}
                 >
@@ -137,22 +169,33 @@ const Navbar = () => {
                         <div
                           key={n._id}
                           title={n.idea?.content || ''}
-                          className={`mb-2 text-sm flex justify-between items-start gap-2 ${
+                          className={`mb-2 text-sm flex justify-between items-start gap-2 cursor-pointer ${
                             n.read ? 'font-normal' : 'font-bold'
                           }`}
                           style={{ color: theme.colors?.text }}
+                          onClick={() => handleNotificationClick(n._id, n.read)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleNotificationClick(n._id, n.read);
+                            }
+                          }}
                         >
                           <div className="flex-1">
-                            {n.sender?.username || 'Someone'}{' '}
-                            {n.type === 'like'
-                              ? 'liked'
-                              : 'commented on'}{' '}
-                            your idea: <em>{n.idea?.content?.slice(0, 30)}...</em>
+                            {n.sender?.alias || 'Someone'}{' '}
+                            {n.type === 'supports' ? 'supports' : 'commented on'} your idea:{' '}
+                            <em>{n.idea?.content?.slice(0, 30)}...</em>
                           </div>
                           <button
-                            onClick={() => deleteNotification(n._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(n._id);
+                            }}
                             title="Delete notification"
                             className="ml-2 text-xs text-red-500 hover:text-red-700 transition"
+                            aria-label="Delete notification"
                           >
                             ✕
                           </button>
@@ -167,6 +210,12 @@ const Navbar = () => {
               <div
                 className="flex items-center gap-2 cursor-pointer min-w-0"
                 onClick={goToProfile}
+                tabIndex={0}
+                role="button"
+                aria-label="Go to profile"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') goToProfile();
+                }}
               >
                 {user.image ? (
                   <img
@@ -201,6 +250,12 @@ const Navbar = () => {
                 onMouseLeave={(e) =>
                   (e.target.style.color = theme.colors?.linkText)
                 }
+                tabIndex={0}
+                role="button"
+                aria-label="Logout"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') handleLogout();
+                }}
               >
                 Logout
               </span>
