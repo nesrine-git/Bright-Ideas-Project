@@ -11,87 +11,80 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
-  const [errors, setErrors] = useState({});
-  const [formErrors, setFormErrors] = useState({
-    name: "Name is required",
-    alias: "Alias is required!",
-    email: "Email is required",
-    password: "Password is required",
-    confirmPassword: "Please confirm your password"
-  });
-  const [enteredForm, setEnteredForm] = useState(false);
-  const [user, setUser] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
+  const [serverErrors, setServerErrors] = useState({});
   const nav = useNavigate();
 
-  const validateForm = () => Object.values(formErrors).every(v => v === '');
-
-  const handleChange = (e) => {
-    const { name, type, value, checked } = e.target;
+  const validateField = (name, value) => {
     const val = value.trim();
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value
-    }));
-
-    let errorMsg = '';
     if (name === 'name') {
-      if (val === '') errorMsg = 'Name is required';
-      else if (val.length < 2) errorMsg = 'Name must be at least 2 characters';
-      else if (val.length > 30) errorMsg = 'Name must be at most 30 characters';
+      if (!val) return 'Name is required';
+      if (val.length < 2) return 'Name must be at least 2 characters';
+      if (val.length > 30) return 'Name must be at most 30 characters';
     }
-
     if (name === 'alias') {
-      if (val === '') errorMsg = 'Alias is required';
-      else if (val.length < 2) errorMsg = 'Alias must be at least 2 characters';
-      else if (val.length > 15) errorMsg = 'Alias must be at most 15 characters';
+      if (!val) return 'Alias is required';
+      if (val.length < 2) return 'Alias must be at least 2 characters';
+      if (val.length > 15) return 'Alias must be at most 15 characters';
     }
-
     if (name === 'email') {
-      if (val === '') errorMsg = 'Email is required';
-      else if (!/^([\w-.]+@([\w-]+\.)+[\w-]+)?$/.test(val)) errorMsg = 'Enter a valid email';
+      if (!val) return 'Email is required';
+      if (!/^[\w-.]+@([\w-]+\.)+[\w-]+$/.test(val)) return 'Enter a valid email';
     }
-
     if (name === 'password') {
-      if (val === '') errorMsg = 'Password is required';
-      else if (val.length < 8) errorMsg = 'Password must be at least 8 characters';
-      else if (val.length > 128) errorMsg = 'Password must be at most 128 characters';
+      if (!val) return 'Password is required';
+      if (val.length < 8) return 'Password must be at least 8 characters';
+      if (val.length > 128) return 'Password must be at most 128 characters';
     }
-
     if (name === 'confirmPassword') {
-      if (val === '') errorMsg = 'Please confirm your password';
-      else if (val !== formData.password) errorMsg = 'Passwords do not match';
+      if (!val) return 'Please confirm your password';
+      if (val !== formData.password) return 'Passwords do not match';
     }
-
-    setFormErrors((prev) => ({ ...prev, [name]: errorMsg }));
-    setErrors((prev) => ({ ...prev, [name]: null }));
+    return '';
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const errors = {};
+    Object.keys(formData).forEach((key) => {
+      if (!isLogin || key === 'email' || key === 'password') {
+        const error = validateField(key, formData[key]);
+        if (error) errors[key] = error;
+      }
+    });
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Live validate the field
+    setFormErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+    setServerErrors((prev) => ({ ...prev, [name]: null }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setEnteredForm(true);
+    if (!validateForm()) return;
 
-    const authAction = isLogin
-      ? userService.login(formData)
-      : userService.register(formData);
-
-    authAction
-      .then((res) => {
-        setUser(res.data);
-        nav('/home');
-      })
-      .catch((err) => {
-        setErrors(err?.response?.data || { message: 'Unknown error' });
-      });
+    try {
+      const action = isLogin ? userService.login : userService.register;
+      const res = await action(formData);
+      nav('/home');
+    } catch (err) {
+      const data = err?.response?.data || { message: err.message || 'Unknown error' };
+      setServerErrors(data.validations || { message: data.message });
+    }
   };
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      className="min-h-screen flex items-center justify-center px-4 bg-gray-100"
       style={{
-       backgroundImage: 'url("./assets/DalleWorkspace.jpg")',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
+        backgroundImage: 'url("https://images.unsplash.com/photo-1531496651712-85d51d5bc3b3?fit=crop&w=1200&q=80")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
       <div className="bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-xl shadow-lg w-full max-w-md">
@@ -103,87 +96,28 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <>
-              <div>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  onClick={() => setEnteredForm(true)}
-                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-                />
-                {formErrors.name && enteredForm && <p className="text-red-500 text-sm">{formErrors.name}</p>}
-                {errors.validations?.name && <p className="text-red-500 text-sm">{errors.validations.name}</p>}
-              </div>
+              <InputField name="name" value={formData.name} onChange={handleChange} placeholder="Name"
+                error={formErrors.name} serverError={serverErrors.name} />
 
-              <div>
-                <input
-                  type="text"
-                  name="alias"
-                  placeholder="Alias"
-                  value={formData.alias}
-                  onChange={handleChange}
-                  onClick={() => setEnteredForm(true)}
-                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-                />
-                {formErrors.alias && enteredForm && <p className="text-red-500 text-sm">{formErrors.alias}</p>}
-                {errors.validations?.alias && <p className="text-red-500 text-sm">{errors.validations.alias}</p>}
-              </div>
+              <InputField name="alias" value={formData.alias} onChange={handleChange} placeholder="Alias"
+                error={formErrors.alias} serverError={serverErrors.alias} />
             </>
           )}
 
-          <div>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              onClick={() => setEnteredForm(true)}
-              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-            />
-            {formErrors.email && enteredForm && <p className="text-red-500 text-sm">{formErrors.email}</p>}
-            {errors.validations?.email && <p className="text-red-500 text-sm">{errors.validations.email}</p>}
-          </div>
+          <InputField name="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email"
+            error={formErrors.email} serverError={serverErrors.email} />
 
-          <div>
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              onClick={() => setEnteredForm(true)}
-              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-            />
-            {formErrors.password && enteredForm && <p className="text-red-500 text-sm">{formErrors.password}</p>}
-            {errors.validations?.password && <p className="text-red-500 text-sm">{errors.validations.password}</p>}
-          </div>
+          <InputField name="password" value={formData.password} onChange={handleChange} placeholder="Password" type="password"
+            error={formErrors.password} serverError={serverErrors.password} />
 
           {!isLogin && (
-            <div>
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                onClick={() => setEnteredForm(true)}
-                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
-              />
-              {formErrors.confirmPassword && enteredForm && (
-                <p className="text-red-500 text-sm">{formErrors.confirmPassword}</p>
-              )}
-              {errors.validations?.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.validations.confirmPassword}</p>
-              )}
-            </div>
+            <InputField name="confirmPassword" value={formData.confirmPassword} onChange={handleChange}
+              placeholder="Confirm Password" type="password"
+              error={formErrors.confirmPassword} serverError={serverErrors.confirmPassword} />
           )}
 
           <button
             type="submit"
-            disabled={!isLogin && !validateForm()}
             className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-300"
           >
             {isLogin ? 'Login' : 'Register'}
@@ -200,5 +134,22 @@ const Register = () => {
     </div>
   );
 };
+
+// Reusable input field component
+const InputField = ({ name, value, onChange, placeholder, type = "text", error, serverError }) => (
+  <div>
+    <input
+      type={type}
+      name={name}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-400"
+    />
+    {(error || serverError) && (
+      <p className="text-red-500 text-sm">{error || serverError}</p>
+    )}
+  </div>
+);
 
 export default Register;

@@ -12,7 +12,7 @@ const Navbar = () => {
   const dropdownRef = useRef(null);
   const bellRef = useRef(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const { theme, toggleTheme } = useTheme(); // Accessing theme and toggle function
+  const { theme, toggleTheme } = useTheme();
 
   const goHome = () => navigate('/home');
   const goToProfile = () => navigate('/profile');
@@ -53,7 +53,7 @@ const Navbar = () => {
 
   return (
     <nav className={`p-4 shadow-md ${theme.cardBg} ${theme.border}`}>
-      <div className="flex justify-between items-center max-w-7xl mx-auto">
+      <div className="flex flex-wrap justify-between items-center max-w-7xl mx-auto">
         {/* Logo */}
         <div
           onClick={goHome}
@@ -62,9 +62,9 @@ const Navbar = () => {
           Bright Ideas+
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
           {user && typeof user === 'object' ? (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
               {/* Notification Bell */}
               <div ref={bellRef} style={{ position: 'relative' }}>
                 <span
@@ -99,7 +99,7 @@ const Navbar = () => {
                 {showDropdown && (
                   <div
                     ref={dropdownRef}
-                    className={`absolute top-10 right-0 bg-white p-3 rounded-xl shadow-lg ${theme.cardBg} ${theme.border}`}
+                    className={`absolute top-10 right-0 bg-white p-3 rounded-xl shadow-lg ${theme.cardBg} ${theme.border} z-50`}
                     style={{ width: '300px', maxHeight: '300px', overflowY: 'auto' }}
                   >
                     <strong>Notifications</strong>
@@ -113,7 +113,7 @@ const Navbar = () => {
                           title={n.idea?.content || ''}
                           className={`font-semibold ${n.read ? 'font-normal' : 'font-bold'} mb-2 text-sm`}
                         >
-                          {n.sender?.username || 'Someone'} {n.type === 'like' ? 'liked' : 'commented on'} your idea: 
+                          {n.sender?.username || 'Someone'} {n.type === 'like' ? 'liked' : 'commented on'} your idea:{' '}
                           <em>{n.idea?.content?.slice(0, 30)}...</em>
                         </div>
                       ))
@@ -124,22 +124,25 @@ const Navbar = () => {
 
               {/* Profile Section */}
               <div
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer min-w-0"
                 onClick={goToProfile}
               >
                 {user.image ? (
                   <img
                     src={`http://localhost:3000/uploads/${user.image}`}
                     alt="profile"
-                    className="rounded-full w-9 h-9"
+                    className="rounded-full w-9 h-9 flex-shrink-0"
                   />
                 ) : (
-                  <div className="rounded-full bg-gray-400 text-white flex justify-center items-center w-9 h-9">
+                  <div className="rounded-full bg-gray-400 text-white flex justify-center items-center w-9 h-9 flex-shrink-0">
                     {user.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
 
-                <span className={`text-lg font-semibold ${theme.linkText} hover:text-primary transition duration-300`}>
+                <span
+                  className={`text-lg font-semibold truncate max-w-xs ${theme.linkText} hover:text-primary transition duration-300`}
+                  title={user.alias || user.name}
+                >
                   {user.alias || user.name}
                 </span>
               </div>
@@ -147,7 +150,7 @@ const Navbar = () => {
               {/* Logout Button */}
               <span
                 onClick={handleLogout}
-                className={` font-bold cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
+                className={`font-bold cursor-pointer ${theme.linkText} hover:text-primary transition duration-300`}
               >
                 Logout
               </span>
@@ -161,7 +164,7 @@ const Navbar = () => {
             onClick={toggleTheme}
             className={`ml-4 p-2 rounded-full ${theme.buttonBg} ${theme.textColor} hover:bg-primary hover:text-white transition duration-300`}
           >
-            {theme.mode === 'dark' ? '🌙' : '☀️'} {/* Toggle icon */}
+            {theme.mode === 'dark' ? '🌙' : '☀️'}
           </button>
         </div>
       </div>

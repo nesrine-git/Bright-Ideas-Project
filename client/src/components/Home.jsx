@@ -179,12 +179,12 @@ const Home = () => {
                 {/* Main Content */}
                 <div className="w-full p-5">
                     <div className="mb-5 text-center">
-                        <p className="text-lg font-semibold text-gray-700">
+                        <p className="text-xl font-semibold text-gray-800 dark:text-gray-600 mb-3">
                             "The best ideas come from action. Create yours now!"
                         </p>
                         <button
                             onClick={toggleCreateForm}
-                            className="text-blue-500 hover:text-blue-700"
+                            className="text-orange-600 hover:text-orange-700"
                         >
                             {showCreateForm ? 'Hide Form' : 'Create Idea'}
                         </button>
