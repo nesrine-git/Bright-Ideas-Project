@@ -185,7 +185,7 @@ const Navbar = () => {
                         >
                           <div className="flex-1">
                             {n.sender?.alias || 'Someone'}{' '}
-                            {n.type === 'supports' ? 'supports' : 'commented on'} your idea:{' '}
+                            {n.type === 'support' ? 'supports' : 'commented on'} your idea:{' '}
                             <em>{n.idea?.content?.slice(0, 30)}...</em>
                           </div>
                           <button

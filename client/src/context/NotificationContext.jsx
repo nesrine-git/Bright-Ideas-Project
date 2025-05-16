@@ -37,6 +37,7 @@ export const NotificationProvider = ({ children }) => {
 };
 
 
+
   const markAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead();
